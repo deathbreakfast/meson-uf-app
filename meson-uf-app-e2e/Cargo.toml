@@ -1,0 +1,89 @@
+[package]
+name = "meson-uf-app-e2e"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license.workspace = true
+description = "Leptos host + Playwright for meson-app MesonRoutes"
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anyhow = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+console_log = { version = "1", optional = true }
+higgs = { workspace = true, optional = true }
+higgs-identity = { workspace = true, optional = true }
+icondata = { workspace = true }
+leptos = { workspace = true }
+leptos_axum = { workspace = true, optional = true, default-features = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+log = { workspace = true, optional = true }
+meson = { workspace = true, optional = true }
+meson-app = { path = "../meson-app", default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
+simple_logger = { version = "5", optional = true }
+tokio = { workspace = true, optional = true }
+tower-http = { version = "0.6", features = ["fs"], optional = true }
+tower-sessions = { workspace = true, optional = true }
+any_spawner = { version = "0.3", features = ["tokio"], optional = true }
+uf-integrations = { workspace = true, default-features = false }
+uf-product = { workspace = true, default-features = false }
+valence = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "meson-app/hydrate",
+    "uf-product/hydrate",
+    "uf-integrations/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:console_log",
+    "dep:wasm-bindgen",
+    "dep:log",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "meson-app/ssr",
+    "uf-product/ssr",
+    "uf-integrations/ssr",
+    "dep:axum",
+    "dep:leptos_axum",
+    "dep:tokio",
+    "dep:tower-http",
+    "dep:tower-sessions",
+    "dep:anyhow",
+    "dep:simple_logger",
+    "dep:log",
+    "dep:any_spawner",
+    "dep:chrono",
+    "dep:async-trait",
+    "dep:higgs",
+    "higgs/ssr",
+    "dep:higgs-identity",
+    "dep:valence",
+    "dep:meson",
+]
+
+[[bin]]
+name = "meson-uf-app-e2e"
+path = "src/main.rs"
+required-features = ["ssr"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# Force getrandom backends for hydrate (uuid / rand pull both 0.2 and 0.3).
+getrandom = { version = "0.2", features = ["js"] }
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }

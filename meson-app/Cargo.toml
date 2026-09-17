@@ -1,0 +1,100 @@
+[package]
+name = "meson-app"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Orbital My Files UI (MesonRoutes at /meson)"
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+leptos = { workspace = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+leptos_axum = { workspace = true, optional = true }
+
+icondata = { workspace = true }
+icondata_core = { workspace = true }
+turf = { workspace = true }
+
+http = { workspace = true }
+cfg-if = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+log = { workspace = true }
+thiserror = { workspace = true }
+
+valence = { workspace = true, optional = true }
+meson = { workspace = true, optional = true }
+meson-leptos = { workspace = true, default-features = false }
+uf-product = { workspace = true, default-features = false }
+uf-integrations = { workspace = true, default-features = false }
+uf-search-core = { workspace = true, default-features = false }
+uf-help = { workspace = true, default-features = false }
+uf-help-macros = { workspace = true }
+lepton-shell = { workspace = true, default-features = false }
+lepton-auth = { workspace = true, default-features = false }
+lepton-auth-ui = { workspace = true, default-features = false }
+orbital-macros = { workspace = true }
+orbital-theme = { workspace = true, default-features = false }
+uf-product-macros = { workspace = true }
+higgs = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }
+base64 = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+photon-leptos = { workspace = true, default-features = false, optional = true }
+axum = { workspace = true, optional = true, features = ["ws"] }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "uf-product/hydrate",
+    "uf-integrations/hydrate",
+    "uf-help/hydrate",
+    "orbital-theme/hydrate",
+    "lepton-shell/hydrate",
+    "lepton-auth/hydrate",
+    "lepton-auth-ui/hydrate",
+    "meson-leptos/hydrate",
+    "dep:photon-leptos",
+    "photon-leptos/hydrate",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "dep:leptos_axum",
+    "dep:valence",
+    "dep:higgs",
+    "dep:meson",
+    "higgs/ssr",
+    "uf-product/ssr",
+    "uf-integrations/ssr",
+    "uf-help/ssr",
+    "orbital-theme/ssr",
+    "lepton-shell/ssr",
+    "lepton-auth/ssr",
+    "lepton-auth-ui/ssr",
+    "uf-search-core/ssr",
+    "dep:base64",
+    "dep:chrono",
+    "dep:async-trait",
+    "meson-leptos/ssr",
+    "dep:photon-leptos",
+    "photon-leptos/ssr",
+    "dep:axum",
+]
+
+[dev-dependencies]
+tokio = { workspace = true }

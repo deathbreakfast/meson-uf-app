@@ -1,0 +1,188 @@
+[workspace]
+resolver = "2"
+members = [
+    "meson-app",
+    "meson-uf-app-e2e",
+]
+
+[[workspace.metadata.leptos]]
+name = "meson-uf-app-e2e"
+output-name = "meson-uf-app-e2e"
+bin-package = "meson-uf-app-e2e"
+lib-package = "meson-uf-app-e2e"
+site-root = "meson-uf-app-e2e/site"
+site-pkg-dir = "pkg"
+style-file = "meson-uf-app-e2e/style/main.scss"
+assets-dir = "meson-uf-app-e2e/public"
+end2end-dir = "meson-uf-app-e2e/end2end"
+end2end-cmd = "npm test"
+# Clear of gauge (:3150), lepton (:3140/:3120), spectra (:3200), magnon (:3210).
+site-addr = "127.0.0.1:3220"
+reload-port = 3221
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
+bin-default-features = false
+lib-default-features = false
+disable-erase-components = true
+lib-profile-dev = "wasm-release"
+lib-profile-release = "wasm-release"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Sean O'Rourke"]
+repository = "https://github.com/unified-field-dev/meson-uf-app"
+homepage = "https://github.com/unified-field-dev/meson-uf-app"
+documentation = "https://github.com/unified-field-dev/meson-uf-app"
+
+[workspace.lints.rust]
+missing_docs = "deny"
+unknown_lints = "allow"
+leptos_print_stdout = "deny"
+leptos_event_target = "deny"
+leptos_event_target_value = "deny"
+leptos_unscoped_spawn = "deny"
+
+[workspace.metadata.dylint]
+libraries = [{ git = "https://github.com/leptos-rs/leptos-lints", tag = "v0.1.2" }]
+
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "allow"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+return_self_not_must_use = "allow"
+redundant_pub_crate = "allow"
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "thin"
+codegen-units = 1
+debug = false
+
+[workspace.dependencies]
+leptos = { version = "0.8.20", default-features = false, features = ["nightly"] }
+leptos_meta = { version = "0.8", default-features = false }
+leptos_router = { version = "0.8", default-features = false, features = ["nightly"] }
+leptos_axum = { version = "0.8", default-features = false }
+icondata = { version = "0.4.0", default-features = false, features = ["ant-design-icons", "box-icons", "lucide"] }
+icondata_core = "0.1.0"
+turf = "0.10"
+http = "1.3.1"
+cfg-if = "1.0.0"
+thiserror = "2.0.12"
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+log = "0.4.27"
+async-trait = "0.1"
+wasm-bindgen = "=0.2.126"
+web-sys = { version = "=0.3.103", features = ["Element", "HtmlElement", "Node", "Document"] }
+axum = "0.8.4"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tower-sessions = "0.14.0"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde", "wasmbind"] }
+base64 = "0.22"
+
+valence = { package = "uf-valence", git = "https://github.com/deathbreakfast/valence", branch = "main", default-features = false, features = ["mem", "sqlite"] }
+meson = { git = "https://github.com/unified-field-dev/meson", branch = "main", default-features = false, features = ["db-sqlite", "backend-local"] }
+meson-leptos = { package = "meson-leptos", git = "https://github.com/unified-field-dev/meson", branch = "main", default-features = false }
+gauge = { git = "https://github.com/unified-field-dev/gauge", branch = "main", default-features = false }
+higgs = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
+higgs-identity = { git = "https://github.com/unified-field-dev/higgs", branch = "main" }
+lepton = { git = "https://github.com/unified-field-dev/lepton", branch = "main", default-features = false }
+orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-theme = { git = "https://github.com/unified-field-dev/orbital", branch = "main", default-features = false }
+uf-product = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-integrations = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-search-core = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-help = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-help-macros = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main" }
+uf-product-macros = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main" }
+lepton-shell = { git = "https://github.com/unified-field-dev/lepton-uf-app", branch = "main", default-features = false }
+lepton-auth = { git = "https://github.com/unified-field-dev/lepton", branch = "main", default-features = false }
+lepton-auth-ui = { git = "https://github.com/unified-field-dev/lepton", branch = "main", default-features = false }
+totp-rs = { version = "5.7", default-features = false }
+photon-leptos = { git = "https://github.com/unified-field-dev/photon-leptos", branch = "main", default-features = false }
+photon-axum = { git = "https://github.com/unified-field-dev/photon-leptos", branch = "main", default-features = false }
+
+# higgs (unpatched, still unified-field-dev) pulls its own uf-valence from the
+# unified-field-dev org copy; redirect it to the deathbreakfast fork so the
+# whole graph shares one `Valence` type instead of two incompatible ones.
+[patch."https://github.com/unified-field-dev/valence"]
+uf-valence = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-core = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-codegen = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-macros = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-telemetry = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-backend-mem = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-backend-sqlite = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-backend-sql = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-schema-dsl = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+
+# unified-field-dev/lepton main's trait schemas (one_time_token_lifecycle,
+# file) are missing the `repository:` key that deathbreakfast/valence now
+# requires — stays on the deathbreakfast fork until lepton adds it upstream.
+[patch."https://github.com/unified-field-dev/lepton"]
+lepton-auth = { git = "https://github.com/deathbreakfast/lepton", branch = "main", default-features = false }
+lepton-auth-ui = { git = "https://github.com/deathbreakfast/lepton", branch = "main", default-features = false }
+lepton-host-adapter = { git = "https://github.com/deathbreakfast/lepton", branch = "main", default-features = false }
+lepton-identity = { git = "https://github.com/deathbreakfast/lepton", branch = "main", default-features = false }
+lepton-spectra-telemetry = { git = "https://github.com/deathbreakfast/lepton", branch = "main" }
+lepton-smtp = { git = "https://github.com/deathbreakfast/lepton", branch = "main" }
+lepton-sms = { git = "https://github.com/deathbreakfast/lepton", branch = "main" }
+
+[patch.crates-io]
+uf-valence = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-core = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-codegen = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-macros = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-telemetry = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-backend-mem = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-backend-sqlite = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-backend-sql = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence-schema-dsl = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+chronon-core = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+chronon-executor = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+chronon-scheduler = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+chronon-telemetry = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+orbital-paging = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-data = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-ui = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-shell = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-core-components = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-base-components = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-primitives = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-theme = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-datatable = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-date-pickers = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-charts = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-tree = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-scheduler = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-motion = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-discussion = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-history = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-markdown = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-style = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+
+# unified-field-dev/unified-field-product main's workspace_search generated
+# code (IndexedDemoItem / UnifiedFieldSearchDocument) is currently broken —
+# stays on the deathbreakfast fork until that lands upstream.
+[patch."https://github.com/unified-field-dev/unified-field-product"]
+uf-product = { git = "https://github.com/deathbreakfast/unified-field-product", branch = "main", default-features = false }
+uf-product-macros = { git = "https://github.com/deathbreakfast/unified-field-product", branch = "main" }
+
