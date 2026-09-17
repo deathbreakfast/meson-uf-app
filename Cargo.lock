@@ -6374,16 +6374,6 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "lepton-smtp"
-version = "0.1.0"
-source = "git+https://github.com/deathbreakfast/lepton?branch=main#564fdac56bc43ea7a52f09944195419c3195f2f5"
-
-[[patch.unused]]
-name = "lepton-spectra-telemetry"
-version = "0.1.0"
-source = "git+https://github.com/deathbreakfast/lepton?branch=main#564fdac56bc43ea7a52f09944195419c3195f2f5"
-
-[[patch.unused]]
 name = "chronon-core"
 version = "0.1.4"
 source = "git+https://github.com/unified-field-dev/chronon?branch=main#c0b4f3d963427f4ba637447d02dfa347a0a94dea"
@@ -6402,3 +6392,13 @@ source = "git+https://github.com/unified-field-dev/chronon?branch=main#c0b4f3d96
 name = "chronon-telemetry"
 version = "0.1.4"
 source = "git+https://github.com/unified-field-dev/chronon?branch=main#c0b4f3d963427f4ba637447d02dfa347a0a94dea"
+
+[[patch.unused]]
+name = "lepton-smtp"
+version = "0.1.0"
+source = "git+https://github.com/deathbreakfast/lepton?branch=main#564fdac56bc43ea7a52f09944195419c3195f2f5"
+
+[[patch.unused]]
+name = "lepton-spectra-telemetry"
+version = "0.1.0"
+source = "git+https://github.com/deathbreakfast/lepton?branch=main#564fdac56bc43ea7a52f09944195419c3195f2f5"
