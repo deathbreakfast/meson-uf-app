@@ -82,7 +82,7 @@ pub fn as_user(base: &Valence, user_id: &str) -> Valence {
 /// Seed one `E2eMesonFile` row owned by `uploader`.
 ///
 /// `bare_id` is the record id **without** the `e2e_meson_file:` table prefix
-/// (matching `upsert_used`'s own convention) — returns the full `table:id`
+/// (matching `upsert`'s own convention) — returns the full `table:id`
 /// string the row actually landed under, for use with [`get_file_for_user`]-
 /// style lookups that expect the full form.
 pub async fn seed_file(
@@ -106,7 +106,7 @@ pub async fn seed_file(
         Utc::now(),
     )
     .expect("E2eMesonFile::new");
-    let created = E2eMesonFile::upsert_used(bare_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Meson File** save for `meson-app tests/common` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let created = E2eMesonFile::upsert(bare_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Meson File** save for `meson-app tests/common` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert e2e_meson_file");
     created
