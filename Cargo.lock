@@ -2494,7 +2494,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "meson"
 version = "0.1.0"
-source = "git+https://github.com/unified-field-dev/meson?branch=main#54672001a7f8c16f2d7e8e0162c2cfa31adf24a9"
+source = "git+https://github.com/unified-field-dev/meson?branch=main#a16cdc35303d1aa4b8696cda2e883dde47a803f8"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2554,7 +2554,7 @@ dependencies = [
 [[package]]
 name = "meson-leptos"
 version = "0.1.0"
-source = "git+https://github.com/unified-field-dev/meson?branch=main#54672001a7f8c16f2d7e8e0162c2cfa31adf24a9"
+source = "git+https://github.com/unified-field-dev/meson?branch=main#a16cdc35303d1aa4b8696cda2e883dde47a803f8"
 dependencies = [
  "axum",
  "higgs",

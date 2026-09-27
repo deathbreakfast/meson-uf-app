@@ -73,7 +73,7 @@ cargo check -p meson-app --features ssr
 
 | Consumer | Role |
 |----------|------|
-| [unified-field-embedded](https://github.com/unified-field-dev/unified-field-embedded) / [unified-field-remote-fleet](https://github.com/deathbreakfast/unified-field-remote-fleet) | Mount `<MesonRoutes />` at `/meson` |
+| [unified-field-embedded](https://github.com/unified-field-dev/unified-field-embedded) / unified-field-remote-fleet | Mount `<MesonRoutes />` at `/meson` |
 | [lepton](https://github.com/unified-field-dev/lepton) `lepton-host-adapter` | Upload API uses the same Meson blob store the UI previews |
 | Finance (planned) | File-trait uploads surface in My Files once wired |
 
