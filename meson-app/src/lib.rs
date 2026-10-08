@@ -100,6 +100,7 @@ uf_app! {
     version: "0.1.0",
     routes: MesonRoutes,
     route_path: "/meson",
+    repository: "https://github.com/unified-field-dev/meson-uf-app",
     permission_manifest: permissions::MesonPermission,
 }
 
