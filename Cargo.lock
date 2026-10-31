@@ -6425,19 +6425,19 @@ dependencies = [
 [[patch.unused]]
 name = "chronon-core"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/chronon?branch=main#a9a144d3d485a174d298944a7cb1e3cbb8c06028"
+source = "git+https://github.com/unified-field-dev/chronon?branch=main#25f4c532d00dec8f9748014e7183b6c4a77c6f0b"
 
 [[patch.unused]]
 name = "chronon-executor"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/chronon?branch=main#a9a144d3d485a174d298944a7cb1e3cbb8c06028"
+source = "git+https://github.com/unified-field-dev/chronon?branch=main#25f4c532d00dec8f9748014e7183b6c4a77c6f0b"
 
 [[patch.unused]]
 name = "chronon-scheduler"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/chronon?branch=main#a9a144d3d485a174d298944a7cb1e3cbb8c06028"
+source = "git+https://github.com/unified-field-dev/chronon?branch=main#25f4c532d00dec8f9748014e7183b6c4a77c6f0b"
 
 [[patch.unused]]
 name = "chronon-telemetry"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/chronon?branch=main#a9a144d3d485a174d298944a7cb1e3cbb8c06028"
+source = "git+https://github.com/unified-field-dev/chronon?branch=main#25f4c532d00dec8f9748014e7183b6c4a77c6f0b"
