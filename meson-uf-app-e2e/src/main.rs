@@ -54,6 +54,10 @@ async fn serve() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/health", get(|| async { axum::http::StatusCode::OK }))
         .route("/api/test/seed-data", post(seed_data))
+        .route(
+            "/api/files/{id}",
+            get(meson_uf_app_e2e::file_route::get_file),
+        )
         .nest_service("/pkg", ServeDir::new(pkg_dir))
         .nest_service("/fonts", ServeDir::new(fonts_dir))
         .leptos_routes_with_context(

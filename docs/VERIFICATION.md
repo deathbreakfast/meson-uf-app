@@ -38,8 +38,8 @@ Embedded host e2e: `/meson` and `/meson/files/:id` route contracts in
 
 Dedicated lab host e2e (fast, harness-auth, isolated from the embedded
 platform): `cargo leptos end-to-end --project meson-uf-app-e2e`
-(`pw-meson-my-files-populated-happy`, `pw-meson-file-detail-image-happy`,
-`pw-meson-file-detail-text-happy`, `pw-meson-file-detail-peer-id-sad`,
+(`pw-meson-my-files-populated-happy`, `meson-preview-image-happy`,
+`meson-preview-text-happy`, `meson-preview-forbidden-sad`,
 `pw-meson-unauth-gated-sad`, `pw-meson-my-files-error-sad`) — see
 `meson-uf-app-e2e/README.md`.
 
