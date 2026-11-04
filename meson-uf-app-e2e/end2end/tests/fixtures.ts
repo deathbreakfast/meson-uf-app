@@ -138,5 +138,12 @@ export async function waitForHydrated(page: Page, timeoutMs = 180_000) {
   });
 }
 
+export async function expectNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+}
+
 export const test = base;
 export { expect };

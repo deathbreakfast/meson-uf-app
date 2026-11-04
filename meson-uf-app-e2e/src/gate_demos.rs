@@ -194,3 +194,14 @@ pub async fn inject_e2e_session_snapshot(
     }
     next.run(req).await
 }
+
+/// Session user id for the e2e auth kind stored in `session`, if signed in.
+#[cfg(feature = "ssr")]
+pub async fn e2e_session_user_id(session: &tower_sessions::Session) -> Option<&'static str> {
+    session
+        .get::<String>(E2E_AUTH_KEY)
+        .await
+        .ok()
+        .flatten()
+        .and_then(|raw| E2eAuthKind::parse(&raw).session_user_id())
+}
