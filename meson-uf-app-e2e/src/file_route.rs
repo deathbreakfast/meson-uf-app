@@ -1,13 +1,14 @@
 //! Lab-only `GET /api/files/{id}`: the route `MesonImg` points `<img src>` at.
 //!
-//! Serves bytes only for an Available File owned by the session user. Missing,
-//! foreign and non-available ids all return 404 so ids cannot be probed.
+//! Serves bytes only for a File owned by the session user. Missing and foreign
+//! ids return 404 so ids cannot be probed; a non-Available file is refused by
+//! `get_file_bytes` and also returns 404. Other store failures return 500.
 
 use axum::extract::Path;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use meson::generated::{FileFields, FileQueryAll};
-use meson::{find_file_in_owned_rows, FileBytes};
+use meson::{find_file_in_owned_rows, FileBytes, FileStoreError};
 use valence::{RecordId, RecordPredicate};
 
 use crate::e2e_valence::e2e_system_valence;
@@ -40,6 +41,9 @@ pub async fn get_file(session: tower_sessions::Session, Path(id): Path<String>) 
     };
     match row.get_file_bytes().await {
         Ok(bytes) => ([(header::CONTENT_TYPE, row.mime_type().clone())], bytes).into_response(),
-        Err(_) => StatusCode::NOT_FOUND.into_response(),
+        Err(FileStoreError::NotFound | FileStoreError::NotAvailable { .. }) => {
+            StatusCode::NOT_FOUND.into_response()
+        }
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }
