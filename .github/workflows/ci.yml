@@ -78,7 +78,7 @@ jobs:
         working-directory: meson-uf-app-e2e/end2end
         env:
           LANES: "4"
-        run: ./run-lanes.sh
+        run: ./run-lanes.sh --no-install
       - name: Upload lane output
         if: always()
         uses: actions/upload-artifact@v4
