@@ -13,6 +13,16 @@ use valence::{
     RouterValenceFactoryConfig, Valence, ValenceFactory, MEM_ENGINE_ID, SQLITE_ENGINE_ID,
 };
 
+/// 8x8 solid-blue PNG served for the seeded image files.
+pub const E2E_PNG_BYTES: &[u8] = &[
+    137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 8, 0, 0, 0, 8, 8, 2, 0,
+    0, 0, 75, 109, 41, 220, 0, 0, 0, 17, 73, 68, 65, 84, 120, 156, 99, 208, 168, 56, 129, 21, 49,
+    12, 45, 9, 0, 2, 213, 90, 1, 196, 145, 123, 173, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130,
+];
+
+/// Body of the seeded `notes.txt`; `meson.spec.ts` asserts these exact lines.
+pub const E2E_TEXT_BYTES: &[u8] = b"Meson preview fixture\nline two: seeded text\n";
+
 struct E2eState {
     router: Arc<DatabaseRouter>,
     higgs: Arc<HiggsConfig>,
@@ -67,8 +77,14 @@ async fn seed_file(
     file_name: &str,
     mime: &str,
     storage_path: &str,
-    size_bytes: i64,
+    bytes: &[u8],
 ) -> String {
+    meson::installed_blob_store()
+        .expect("e2e blob store installed before seeding")
+        .put(storage_path, bytes)
+        .await
+        .expect("put fixture bytes");
+    let size_bytes = i64::try_from(bytes.len()).expect("fixture length fits i64");
     let extension = file_name.rsplit('.').next().unwrap_or("bin").to_string();
     let row = E2eMesonFile::new(
         file_name.to_string(),
@@ -97,6 +113,11 @@ pub async fn init_e2e_valence() {
 
     prepare_env();
     touch_schema_inventory();
+
+    let blob_root =
+        std::env::temp_dir().join(format!("meson-uf-app-e2e-blobs-{}", std::process::id()));
+    meson::install_blob_store(Arc::new(meson::LocalDiskBlobStore::new(blob_root)))
+        .expect("install e2e blob store");
 
     let backend: Arc<dyn DatabaseBackend> = Arc::new(InMemoryBackend::new());
     let mut router = DatabaseRouter::new();
@@ -138,7 +159,7 @@ pub async fn init_e2e_valence() {
         "receipt.png",
         "image/png",
         "owner-image.png",
-        2048,
+        E2E_PNG_BYTES,
     )
     .await;
     let owner_text_file_id = seed_file(
@@ -148,7 +169,7 @@ pub async fn init_e2e_valence() {
         "notes.txt",
         "text/plain",
         "owner-text.txt",
-        64,
+        E2E_TEXT_BYTES,
     )
     .await;
     let peer_file_id = seed_file(
@@ -158,7 +179,7 @@ pub async fn init_e2e_valence() {
         "peer-only.png",
         "image/png",
         "peer-file.png",
-        1024,
+        E2E_PNG_BYTES,
     )
     .await;
 
@@ -206,7 +227,6 @@ pub fn e2e_fixtures() -> FixtureIds {
     state().fixtures.lock().expect("fixtures").clone()
 }
 
-#[allow(dead_code)] // parity with gauge's e2e_valence shape; unused until a seed-time fixture reset is needed
 pub fn e2e_system_valence() -> Valence {
     Valence::builder()
         .database_router(e2e_router())

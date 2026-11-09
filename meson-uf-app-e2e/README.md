@@ -26,8 +26,12 @@ The lab host mounts the same page components as `MesonRoutes`, without `Lazy`
 pin). Production hosts keep `MesonRoutes` for code-splitting.
 
 Fixtures (two owner files, one peer file) are seeded once at process boot in
-`e2e_valence.rs`, not through the upload flow — this host never mounts
-`/api/files/upload`. That path is exercised by meson's own quarantine-pipeline
+`e2e_valence.rs`, with real bytes (a PNG and a short text file) in a temp-dir
+blob store, not through the upload flow — this host never mounts
+`/api/files/upload`. The host serves `GET /api/files/{id}` (`file_route.rs`) for `MesonImg`: bytes
+for an Available file the session user owns, 404 for a foreign or missing id,
+401 when signed out. The preview scenarios run at 390px in dark mode. The
+upload path is exercised by meson's own quarantine-pipeline
 tests and by `unified-field-embedded/end2end`'s `meson-virus-scan.spec.ts`.
 
 ## Seed
@@ -41,8 +45,8 @@ Response includes the seeded fixture ids:
 ## Scenarios
 
 - `pw-meson-my-files-populated-happy`
-- `pw-meson-file-detail-image-happy`
-- `pw-meson-file-detail-text-happy`
-- `pw-meson-file-detail-peer-id-sad`
+- `meson-preview-image-happy`
+- `meson-preview-text-happy`
+- `meson-preview-forbidden-sad`
 - `pw-meson-unauth-gated-sad`
 - `pw-meson-my-files-error-sad`

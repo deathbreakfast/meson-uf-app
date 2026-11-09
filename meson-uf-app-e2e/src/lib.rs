@@ -7,6 +7,8 @@
 mod app;
 #[cfg(feature = "ssr")]
 mod e2e_valence;
+#[cfg(feature = "ssr")]
+pub mod file_route;
 mod gate_demos;
 mod harness_auth_menu;
 mod meson_routes_eager;
