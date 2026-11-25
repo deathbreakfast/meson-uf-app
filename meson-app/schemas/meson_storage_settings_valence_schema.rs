@@ -12,9 +12,9 @@ valence_schema! {
 
         policies: {
             read:   { allow: [AUTHENTICATED] },
-            // StorageAdmin is checked by the only writer, the server fn (Gauge stays a host concern).
-            create: { allow: [AUTHENTICATED] },
-            update: { allow: [AUTHENTICATED] },
+            // Writes need the Gauge permission StorageAdmin; the server fn checks it too.
+            create: { allow: [STORAGE_ADMIN] },
+            update: { allow: [STORAGE_ADMIN] },
             delete: { always_block: [BLOCK_ALL] },
         },
 

@@ -3,6 +3,7 @@
 //!
 //! - [`schema`]: the `meson_storage_daily` Spectra table and the row contract
 //!   the daily Chronon jobs write against.
+//! - [`policy`]: the Gauge `StorageAdmin` write rule on the settings row.
 //! - [`snapshot`]: [`snapshot::latest_snapshot`] and [`snapshot::history`].
 //! - [`settings`]: the `meson_storage_settings` row (copies override, price).
 //! - [`view`]: [`view::StorageView`], with a source for every input so the
@@ -10,6 +11,8 @@
 //!
 //! The server fns in [`crate::server`] tie these together.
 
+#[cfg(feature = "ssr")]
+pub mod policy;
 #[cfg(feature = "ssr")]
 pub mod schema;
 pub mod settings;

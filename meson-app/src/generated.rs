@@ -15,4 +15,7 @@
 
 use valence::privacy_policies::common::{AUTHENTICATED, BLOCK_ALL};
 
+#[cfg(feature = "ssr")]
+use crate::storage::policy::STORAGE_ADMIN;
+
 include!(concat!(env!("OUT_DIR"), "/generated_models.rs"));
