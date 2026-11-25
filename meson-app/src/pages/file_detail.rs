@@ -7,11 +7,9 @@ use uf_product::components::{
     Body1, Caption1, Card, CardContent, CardHeader, ContentContainer, EmptyState, SpacingSize,
     Subtitle1, Title3,
 };
-use uf_product::primitives::{
-    Button, ButtonAppearance, Code, Flex, Link, MessageBar, MessageBarIntent,
-};
+use uf_product::primitives::{Button, ButtonAppearance, Code, Flex, Link};
 
-use crate::components::FileStatusBadge;
+use crate::components::{classify, ErrorBar, ErrorKind, FileStatusBadge, NotInYourFiles};
 use crate::server::{
     get_my_file, get_my_file_preview, subscribe_list_my_files, FilePreviewPayload, MyFileRow,
     PreviewMode,
@@ -36,7 +34,7 @@ pub fn FileDetailPage() -> impl IntoView {
         move || (id(), ws_trigger.get()),
         |(eid, _)| async move {
             if eid.is_empty() {
-                return Err(ServerFnError::new("missing id"));
+                return Err(ServerFnError::new("not_found: missing id"));
             }
             get_my_file(eid).await
         },
@@ -46,7 +44,7 @@ pub fn FileDetailPage() -> impl IntoView {
         move || (id(), ws_trigger.get()),
         |(eid, _)| async move {
             if eid.is_empty() {
-                return Err(ServerFnError::new("missing id"));
+                return Err(ServerFnError::new("not_found: missing id"));
             }
             get_my_file_preview(eid).await
         },
@@ -89,7 +87,11 @@ pub fn FileDetailPage() -> impl IntoView {
                                                         {move || match preview_res.get() {
                                                             Some(Ok(preview)) => view! { <PreviewPane preview=preview /> }.into_any(),
                                                             Some(Err(e)) => view! {
-                                                                <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar>
+                                                                <ErrorBar
+                                                                    error=e
+                                                                    what="this file"
+                                                                    on_retry=Callback::new(move |()| preview_res.refetch())
+                                                                />
                                                             }.into_any(),
                                                             None => view! { <Body1>"Loading preview…"</Body1> }.into_any(),
                                                         }}
@@ -102,8 +104,15 @@ pub fn FileDetailPage() -> impl IntoView {
                                 </Flex>
                             }.into_any()
                         }
+                        Some(Err(e)) if classify(&e) == ErrorKind::NotFound => {
+                            view! { <NotInYourFiles /> }.into_any()
+                        }
                         Some(Err(e)) => view! {
-                            <MessageBar intent=MessageBarIntent::Warning>{e.to_string()}</MessageBar>
+                            <ErrorBar
+                                error=e
+                                what="this file"
+                                on_retry=Callback::new(move |()| meta_res.refetch())
+                            />
                         }.into_any(),
                         None => view! { <Card><CardContent>"Loading…"</CardContent></Card> }.into_any(),
                     }}

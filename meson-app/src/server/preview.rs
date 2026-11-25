@@ -27,7 +27,7 @@ pub struct FilePreviewPayload {
     pub size_bytes: i64,
 }
 
-#[uf_product_macros::server]
+#[uf_product_macros::server(permission = "FilesRead")]
 pub async fn get_my_file_preview(id: String) -> Result<FilePreviewPayload, ServerFnError> {
     #[cfg(feature = "ssr")]
     {

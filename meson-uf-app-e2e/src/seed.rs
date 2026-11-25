@@ -9,7 +9,7 @@ use crate::gate_demos::{write_e2e_auth_kind, E2eAuthKind};
 
 #[derive(Debug, Deserialize)]
 pub struct SeedRequest {
-    /// `anonymous` | `owner` | `peer` | `unverified` | `broken_session`
+    /// `anonymous` | `owner` | `peer` | `unverified` | `broken_session` | `no_files_read`
     #[serde(default = "default_auth")]
     pub auth: String,
 }

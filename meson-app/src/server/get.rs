@@ -8,7 +8,7 @@ use super::list::MyFileRow;
 ///
 /// Pair with [`super::list::subscribe_list_my_files`] so detail refetches when
 /// Photon publishes `meson.file.updated` (same topic / WS as the list).
-#[uf_product_macros::server]
+#[uf_product_macros::server(permission = "FilesRead")]
 pub async fn get_my_file(id: String) -> Result<MyFileRow, ServerFnError> {
     #[cfg(feature = "ssr")]
     {

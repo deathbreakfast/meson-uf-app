@@ -36,7 +36,7 @@ pub struct MyFileRow {
         auth = "user"
     )
 )]
-#[uf_product_macros::server]
+#[uf_product_macros::server(permission = "FilesRead")]
 pub async fn list_my_files() -> Result<Vec<MyFileRow>, ServerFnError> {
     #[cfg(feature = "ssr")]
     {

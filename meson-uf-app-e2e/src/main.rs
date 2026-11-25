@@ -46,9 +46,18 @@ async fn serve() -> anyhow::Result<()> {
         .with_name("uf_meson_uf_app_e2e")
         .with_path("/");
 
+    let higgs_config = e2e_higgs_config();
     let leptos_options_for_routes = leptos_options.clone();
+    let route_context = {
+        let higgs = higgs_config.clone();
+        move || {
+            provide_context::<std::sync::Arc<higgs::HiggsConfig>>(higgs.clone());
+            uf_product::permissions::provide_permission_backend(std::sync::Arc::new(
+                meson_uf_app_e2e::E2ePermissionBackend,
+            ));
+        }
+    };
     let leptos_options_state = leptos_options.clone();
-    let higgs = e2e_higgs_config();
     let db_router = e2e_router();
 
     let app = Router::new()
@@ -60,15 +69,13 @@ async fn serve() -> anyhow::Result<()> {
         )
         .nest_service("/pkg", ServeDir::new(pkg_dir))
         .nest_service("/fonts", ServeDir::new(fonts_dir))
-        .leptos_routes_with_context(
-            &leptos_options,
-            routes,
-            move || {
-                provide_context::<std::sync::Arc<higgs::HiggsConfig>>(higgs.clone());
-            },
-            move || shell(leptos_options_for_routes.clone()),
-        )
-        .fallback(leptos_axum::file_and_error_handler(shell))
+        .leptos_routes_with_context(&leptos_options, routes, route_context.clone(), move || {
+            shell(leptos_options_for_routes.clone())
+        })
+        .fallback(leptos_axum::file_and_error_handler_with_context(
+            route_context,
+            shell,
+        ))
         .layer(from_fn(inject_e2e_session_snapshot))
         .layer(Extension(db_router))
         .layer(session_layer)

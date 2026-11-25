@@ -14,6 +14,8 @@ pub const E2E_OWNER_USER: &str = "user:owner";
 pub const E2E_PEER_USER: &str = "user:peer";
 #[cfg(feature = "ssr")]
 pub const E2E_UNVERIFIED_USER: &str = "user:unverified";
+#[cfg(feature = "ssr")]
+pub const E2E_NO_FILES_READ_USER: &str = "user:nofiles";
 /// Not a `table:id` shape — `RecordId::parse` rejects it, so any handler
 /// calling `session_user_record_id` fails with a real `auth:` error.
 #[cfg(feature = "ssr")]
@@ -33,6 +35,8 @@ pub enum E2eAuthKind {
     /// Authenticated with a session user id that isn't a valid Valence
     /// `RecordId` — drives the My Files list/preview `io`/`auth` error path.
     BrokenSession,
+    /// Signed in and verified, but `FilesRead` is withheld (see [`E2ePermissionBackend`]).
+    NoFilesRead,
 }
 
 impl E2eAuthKind {
@@ -43,6 +47,7 @@ impl E2eAuthKind {
             Self::Peer => "peer",
             Self::Unverified => "unverified",
             Self::BrokenSession => "broken_session",
+            Self::NoFilesRead => "no_files_read",
         }
     }
 
@@ -52,6 +57,7 @@ impl E2eAuthKind {
             "peer" => Self::Peer,
             "unverified" | "authenticated_unverified" => Self::Unverified,
             "broken_session" => Self::BrokenSession,
+            "no_files_read" => Self::NoFilesRead,
             _ => Self::Anonymous,
         }
     }
@@ -64,6 +70,7 @@ impl E2eAuthKind {
             Self::Peer => Some(E2E_PEER_USER),
             Self::Unverified => Some(E2E_UNVERIFIED_USER),
             Self::BrokenSession => Some(E2E_BROKEN_SESSION_USER),
+            Self::NoFilesRead => Some(E2E_NO_FILES_READ_USER),
         }
     }
 
@@ -93,6 +100,14 @@ impl E2eAuthKind {
                 avatar_url: None,
                 roles: vec!["user".into()],
                 email_verified: false,
+            }),
+            Self::NoFilesRead => AuthSession::Authenticated(AuthenticatedUser {
+                user_id: "nofiles".into(),
+                email: Some("nofiles@example.com".into()),
+                display_name: Some("No Files Read".into()),
+                avatar_url: None,
+                roles: vec!["user".into()],
+                email_verified: true,
             }),
             Self::BrokenSession => AuthSession::Authenticated(AuthenticatedUser {
                 user_id: "broken".into(),
@@ -204,4 +219,27 @@ pub async fn e2e_session_user_id(session: &tower_sessions::Session) -> Option<&'
         .ok()
         .flatten()
         .and_then(|raw| E2eAuthKind::parse(&raw).session_user_id())
+}
+
+/// Lab stand-in for a Gauge-backed host: every signed-in user is a member and
+/// holds `FilesRead`, except the `no_files_read` seed kind.
+#[cfg(feature = "ssr")]
+pub struct E2ePermissionBackend;
+
+#[cfg(feature = "ssr")]
+#[async_trait::async_trait]
+impl uf_product::permissions::PermissionBackend for E2ePermissionBackend {
+    async fn has_permission(&self, permission_name: &str) -> Result<bool, ServerFnError> {
+        let session: tower_sessions::Session = leptos_axum::extract().await?;
+        let kind = session
+            .get::<String>(E2E_AUTH_KEY)
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?
+            .map_or(E2eAuthKind::Anonymous, |raw| E2eAuthKind::parse(&raw));
+        let allowed = match kind {
+            E2eAuthKind::Anonymous | E2eAuthKind::NoFilesRead => false,
+            _ => permission_name == "FilesRead",
+        };
+        Ok(allowed)
+    }
 }

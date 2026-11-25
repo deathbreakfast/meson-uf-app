@@ -8,13 +8,13 @@ mod common;
 use common::ui_render::render_html;
 use leptos::prelude::*;
 use leptos_router::components::A;
-use meson_app::components::FileStatusBadge;
+use meson_app::components::{FileStatusBadge, NotInYourFiles};
 use meson_app::server::{FilePreviewPayload, PreviewMode};
 use meson_app::PreviewPane;
 use uf_product::components::{
     Body1, Caption1, Card, CardContent, ContentContainer, SpacingSize, Title3,
 };
-use uf_product::primitives::{Button, ButtonAppearance, Flex, MessageBar, MessageBarIntent};
+use uf_product::primitives::{Button, ButtonAppearance, Flex};
 
 /// Back-link + metadata card chrome, matching `FileDetailPage`'s `Some(Ok(meta))` arm minus the preview card.
 fn detail_shell(children: impl IntoView + 'static) -> impl IntoView {
@@ -100,20 +100,21 @@ fn e2e_l06_file_detail_image_mode_card_happy() {
     assert!(html.contains("Preview"), "{html}");
 }
 
-/// E2E-L07 — not-found / foreign-id collapse renders a Warning `MessageBar`, not a crash.
+/// E2E-L07 — not-found / foreign-id collapse renders the "not in your files" state, not a crash.
 #[test]
 fn e2e_l07_file_detail_not_found_sad() {
-    let error_text = "not_found: File not found";
     let html = render_html(move || {
         view! {
             <ContentContainer data_testid="meson-file-detail">
-                <MessageBar intent=MessageBarIntent::Warning>{error_text}</MessageBar>
+                <NotInYourFiles />
             </ContentContainer>
         }
         .into_any()
     });
     assert!(html.contains("data-testid=\"meson-file-detail\""), "{html}");
-    assert!(html.contains(error_text), "{html}");
+    assert!(html.contains("meson-file-not-in-your-files"), "{html}");
+    assert!(html.contains("Back to My Files"), "{html}");
+    assert!(!html.contains("not_found:"), "{html}");
 }
 
 /// E2E-L08 — "Back to My Files" always links to `/meson`, and status badge renders.

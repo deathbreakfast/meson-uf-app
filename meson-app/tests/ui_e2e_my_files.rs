@@ -7,12 +7,13 @@ mod common;
 
 use common::ui_render::render_html;
 use leptos::prelude::*;
+use meson_app::components::ErrorBar;
 use meson_app::server::MyFileRow;
 use meson_app::MyFilesTable;
 use uf_product::components::{
     Body1, Caption1, Card, CardContent, ContentContainer, EmptyState, SpacingSize, Title3,
 };
-use uf_product::primitives::{Flex, MessageBar, MessageBarIntent};
+use uf_product::primitives::Flex;
 
 fn sample_row(id: &str, status: &str) -> MyFileRow {
     MyFileRow {
@@ -94,18 +95,67 @@ fn e2e_l02_my_files_table_status_badges_happy() {
     assert!(html.contains("/meson/files/file-available"), "{html}");
 }
 
-/// Error state: `MessageBar` intent=Error surfaces the server-fn failure text.
+/// Error state: the real `ErrorBar` says what happened and never prints the raw text.
 #[test]
 fn e2e_l03_my_files_error_state_sad() {
-    let error_text = "io: list files failed";
     let html = render_html(move || {
         view! {
             <ContentContainer data_testid="meson-my-files">
-                <MessageBar intent=MessageBarIntent::Error>{error_text}</MessageBar>
+                <ErrorBar
+                    error=ServerFnError::new("io: list files failed")
+                    what="your files"
+                    on_retry=Callback::new(|()| {})
+                />
             </ContentContainer>
         }
         .into_any()
     });
     assert!(html.contains("data-testid=\"meson-my-files\""), "{html}");
-    assert!(html.contains(error_text), "{html}");
+    assert!(
+        html.contains("Couldn&#x27;t load your files") || html.contains("Couldn't load your files"),
+        "{html}"
+    );
+    assert!(html.contains("Try again"), "{html}");
+    assert!(
+        !html.contains("io:") && !html.contains("list files failed"),
+        "{html}"
+    );
+}
+
+/// A broken session reads as a sign-in problem, with no backend detail.
+#[test]
+fn e2e_l03b_my_files_sign_in_state_sad() {
+    let html = render_html(move || {
+        view! {
+            <ErrorBar
+                error=ServerFnError::new("auth: Failed to build Valence: db down")
+                what="your files"
+                on_retry=Callback::new(|()| {})
+            />
+        }
+        .into_any()
+    });
+    assert!(html.contains("Sign in again to see your files"), "{html}");
+    assert!(html.contains("Sign in again"), "{html}");
+    assert!(
+        !html.contains("auth:") && !html.contains("db down"),
+        "{html}"
+    );
+}
+
+/// A withheld `FilesRead` shows the denied state.
+#[test]
+fn e2e_l03c_my_files_denied_state_sad() {
+    let html = render_html(move || {
+        view! {
+            <ErrorBar
+                error=ServerFnError::new("permission_denied::FilesRead")
+                what="your files"
+                on_retry=Callback::new(|()| {})
+            />
+        }
+        .into_any()
+    });
+    assert!(html.contains("meson-files-read-denied"), "{html}");
+    assert!(html.contains("Ask a site owner"), "{html}");
 }
