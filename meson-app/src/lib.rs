@@ -9,6 +9,9 @@
 //! - **My Files routes** — Authenticated Orbital UI that lists the session
 //!   user's File-trait uploads and opens owned image/text previews at
 //!   [`paths::ROOT`] (`/meson`) and `/meson/files/:id`. [Get started](#mount-mesonroutes)
+//! - **Storage data** — The daily `meson_storage_daily` Spectra snapshot, the
+//!   site cost settings and the server fns the Storage page calls. See
+//!   [`storage`] for the row contract the daily Chronon jobs write against.
 //!
 //! # Mount `MesonRoutes`
 //!
@@ -79,6 +82,8 @@ use leptos_router::{
 use uf_product_macros::uf_app;
 
 pub mod components;
+#[cfg(feature = "ssr")]
+pub mod generated;
 mod layout;
 mod lazy_routes;
 pub mod pages;
@@ -86,6 +91,7 @@ pub mod permissions;
 pub mod server;
 pub mod shell;
 pub mod status;
+pub mod storage;
 
 pub use layout::MesonLayout;
 pub use pages::{FileDetailPage, MyFilesPage, MyFilesTable, PreviewPane};
