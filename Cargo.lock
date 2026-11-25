@@ -2583,7 +2583,9 @@ dependencies = [
  "uf-product",
  "uf-product-macros",
  "uf-search-core",
+ "uf-spectra",
  "uf-valence",
+ "uf-valence-codegen",
  "wasm-bindgen",
  "web-sys",
 ]

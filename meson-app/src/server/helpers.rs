@@ -18,6 +18,9 @@ mod ssr {
         #[allow(dead_code)] // via `forbidden_error` in unit tests
         #[error("forbidden: {0}")]
         Forbidden(String),
+        /// Input the caller can fix (shown in the form).
+        #[error("invalid: {0}")]
+        Invalid(String),
         /// Backend / Valence I/O failure.
         #[error("io: {msg}")]
         Io {
@@ -41,6 +44,10 @@ mod ssr {
         #[allow(dead_code)] // via `forbidden_error` in unit tests
         pub(crate) fn forbidden(detail: impl Into<String>) -> Self {
             Self::Forbidden(detail.into())
+        }
+
+        pub(crate) fn invalid(detail: impl Into<String>) -> Self {
+            Self::Invalid(detail.into())
         }
 
         pub(crate) fn io_msg(msg: impl Into<String>) -> Self {
@@ -76,6 +83,9 @@ mod ssr {
                         error = %self,
                         "meson-app ownership denial"
                     );
+                }
+                Self::Invalid(_) => {
+                    tracing::debug!(outcome = "invalid", error = %self, "meson-app server fn rejected input");
                 }
                 Self::Io { source, .. } => {
                     if let Some(src) = source {
