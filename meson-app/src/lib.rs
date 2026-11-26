@@ -9,6 +9,9 @@
 //! - **My Files routes** — Authenticated Orbital UI that lists the session
 //!   user's File-trait uploads and opens owned image/text previews at
 //!   [`paths::ROOT`] (`/meson`) and `/meson/files/:id`. [Get started](#mount-mesonroutes)
+//! - **Storage page** — `/meson/storage` shows the member's storage use and
+//!   estimated cost, and for `StorageAdmin` holders everyone's use and the
+//!   cost settings. See [`pages::storage`].
 //! - **Storage data** — The daily `meson_storage_daily` Spectra snapshot, the
 //!   site cost settings and the server fns the Storage page calls. See
 //!   [`storage`] for the row contract the daily Chronon jobs write against.
@@ -94,9 +97,9 @@ pub mod status;
 pub mod storage;
 
 pub use layout::MesonLayout;
-pub use pages::{FileDetailPage, MyFilesPage, MyFilesTable, PreviewPane};
+pub use pages::{FileDetailPage, MyFilesPage, MyFilesTable, PreviewPane, StoragePage};
 
-use lazy_routes::{FileDetailRoute, MesonLayoutRouteView, MyFilesIndexRoute};
+use lazy_routes::{FileDetailRoute, MesonLayoutRouteView, MyFilesIndexRoute, StorageRoute};
 
 uf_app! {
     name: "Meson",
@@ -110,7 +113,7 @@ uf_app! {
     permission_manifest: permissions::MesonPermission,
 }
 
-/// Route tree for Meson: My Files index and file detail/preview.
+/// Route tree for Meson: My Files index, file detail/preview and Storage.
 #[allow(missing_docs)]
 #[orbital_macros::orbital_routes_extract]
 #[component(transparent)]
@@ -119,6 +122,7 @@ pub fn MesonRoutes() -> impl leptos_router::MatchNestedRoutes + Clone {
         <ParentRoute path=path!("meson") view=MesonLayoutRouteView>
             <Route path=path!("") view={Lazy::<MyFilesIndexRoute>::new()} />
             <Route path=path!("files/:id") view={Lazy::<FileDetailRoute>::new()} />
+            <Route path=path!("storage") view={Lazy::<StorageRoute>::new()} />
         </ParentRoute>
     }
     .into_inner()
