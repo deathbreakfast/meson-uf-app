@@ -4,3 +4,6 @@ meson.spec.ts › pw-meson › narrow dark › meson-preview-text-happy
 meson.spec.ts › pw-meson › narrow dark › meson-preview-forbidden-sad
 meson.spec.ts › pw-meson › pw-meson-unauth-gated-sad
 meson.spec.ts › pw-meson › pw-meson-my-files-error-sad
+meson.spec.ts › pw-meson › pw-meson-no-files-read-denied-sad
+meson.spec.ts › pw-meson › pw-meson-file-not-in-your-files-sad
+meson.spec.ts › pw-meson › pw-meson-keeps-dialog-happy

@@ -5,11 +5,10 @@ use uf_product::components::{
     Body1, Caption1, Card, CardContent, ContentContainer, EmptyState, SpacingSize, Title3,
 };
 use uf_product::primitives::{
-    Flex, Link, MessageBar, MessageBarIntent, Table, TableBody, TableCell, TableHeader,
-    TableHeaderCell, TableRow,
+    Flex, Link, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow,
 };
 
-use crate::components::FileStatusBadge;
+use crate::components::{ErrorBar, FileStatusBadge, KeepsDialog};
 use crate::server::{list_my_files, subscribe_list_my_files, MyFileRow};
 
 /// My Files list across all File-trait tables for the signed-in user.
@@ -26,6 +25,7 @@ pub fn MyFilesPage() -> impl IntoView {
             <Flex vertical=true gap=SpacingSize::Size240.flex_gap()>
                 <Title3>"My Files"</Title3>
                 <Body1>"Files you uploaded across apps that use the File trait."</Body1>
+                <div><KeepsDialog /></div>
 
                 <Suspense fallback=move || view! { <Card><CardContent>"Loading…"</CardContent></Card> }>
                     {move || match files_res.get() {
@@ -50,7 +50,11 @@ pub fn MyFilesPage() -> impl IntoView {
                             }.into_any()
                         }
                         Some(Err(e)) => view! {
-                            <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar>
+                            <ErrorBar
+                                error=e
+                                what="your files"
+                                on_retry=Callback::new(move |()| files_res.refetch())
+                            />
                         }.into_any(),
                         None => view! { <Card><CardContent>"Loading…"</CardContent></Card> }.into_any(),
                     }}

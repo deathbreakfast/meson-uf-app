@@ -57,7 +57,7 @@ test.describe("pw-meson", () => {
       await waitForHydrated(page);
 
       const detail = page.getByTestId("meson-file-detail");
-      await expect(detail.getByText(/not_found:/)).toBeVisible();
+      await expect(detail.getByText("This file isn't in your files")).toBeVisible();
       await expect(detail.getByTestId("meson-img")).toHaveCount(0);
       await expect(page.getByText("peer-only.png")).toHaveCount(0);
 
@@ -89,6 +89,57 @@ test.describe("pw-meson", () => {
     await waitForHydrated(page);
 
     await expect(page.getByTestId("meson-my-files")).toBeAttached();
-    await expect(page.getByText(/auth:/)).toBeVisible();
+    await expect(page.getByText("Sign in again to see your files")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign in again" })).toBeVisible();
+    await expect(page.getByText(/auth:|error running server function/)).toHaveCount(0);
+  });
+
+  test("pw-meson-no-files-read-denied-sad", async ({ page }) => {
+    await seedAuth(page, "no_files_read");
+    await page.goto("/meson");
+    await waitForHydrated(page);
+
+    const denied = page.getByTestId("meson-files-read-denied");
+    await expect(denied.getByText("You can't open My Files yet")).toBeVisible();
+    await expect(denied.getByText(/Files read permission/)).toBeVisible();
+    await expect(denied.getByRole("link", { name: "Ask a site owner" })).toBeVisible();
+    await expect(page.getByTestId("meson-my-files")).toHaveCount(0);
+
+    await page.goto("/meson/files/owner-image");
+    await waitForHydrated(page);
+    await expect(page.getByTestId("meson-files-read-denied")).toBeVisible();
+    await expect(page.getByTestId("meson-file-detail")).toHaveCount(0);
+  });
+
+  test("pw-meson-file-not-in-your-files-sad", async ({ page }) => {
+    const seeded = await seedAuth(page, "owner");
+    const ids = [
+      seeded.fixtures.peer_file_id,
+      "file:doesnotexist",
+      "not-a-record-id",
+    ];
+    for (const id of ids) {
+      await page.goto(`/meson/files/${encodeURIComponent(id)}`);
+      await waitForHydrated(page);
+      const empty = page.getByTestId("meson-file-not-in-your-files");
+      await expect(empty.getByText("This file isn't in your files")).toBeVisible();
+      await expect(empty.getByRole("link", { name: "Back to My Files" })).toBeVisible();
+      await expect(page.getByText(/not_found:|error running server function/)).toHaveCount(0);
+    }
+  });
+
+  test("pw-meson-keeps-dialog-happy", async ({ page }) => {
+    await seedAuth(page, "owner");
+    await page.goto("/meson");
+    await waitForHydrated(page);
+
+    await page.getByTestId("meson-keeps-link").click();
+    const dialog = page.getByTestId("meson-keeps-dialog");
+    await expect(dialog.getByText(/they don't see the file names/)).toBeVisible();
+    await expect(dialog.getByText(/Close your account and Meson deletes your files within 30 days/)).toBeVisible();
+
+    await page.getByTestId("meson-keeps-close").click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("receipt.png")).toBeVisible();
   });
 });

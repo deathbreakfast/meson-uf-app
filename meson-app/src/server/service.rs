@@ -36,7 +36,7 @@ pub async fn list_files_for_user(
     v: &Valence,
     user_rid: RecordId,
 ) -> Result<Vec<MyFileRow>, MesonAppError> {
-    let rows = FileQueryAll::query(v, valence::use_!(r"In **Meson file storage**, we **list File Query All** so the product can show or process the matching set for this workflow. Callers allowed for **Meson file storage** use the list; it is not a public dump of every field to anonymous visitors."))
+    let rows = FileQueryAll::query(v, valence::use_!(r"When you open **My Files**, we load the **files you uploaded** in any app on this site: each file's **name, type, size, scan status, upload time** and the **app that stored it**. Only rows **you uploaded** are requested. They are **shown to you** in the My Files table, and nobody else sees them there."))
         .where_uploaded_by(RecordPredicate::Equals(user_rid))
         .await
         .map_err(|e| MesonAppError::io_source("list files failed", e))?;
@@ -59,7 +59,7 @@ pub async fn get_file_for_user(
     id: &str,
 ) -> Result<MyFileRow, MesonAppError> {
     let want = RecordId::parse(id).ok_or_else(|| not_found_error("Invalid file id"))?;
-    let rows = FileQueryAll::query(v, valence::use_!(r"In **Meson file storage**, we **list File Query All** so the product can show or process the matching set for this workflow. Callers allowed for **Meson file storage** use the list; it is not a public dump of every field to anonymous visitors."))
+    let rows = FileQueryAll::query(v, valence::use_!(r"When you open one file in **My Files**, we load the **files you uploaded** and pick out the one you asked for, so its page can show that file's **name, type, size, scan status, upload time** and **app**. Only rows **you uploaded** are requested, so a link to someone else's file finds nothing. The details are **shown to you** on the file page."))
         .where_uploaded_by(RecordPredicate::Equals(user_rid))
         .await
         .map_err(|e| MesonAppError::io_source("get file list failed", e))?;
@@ -82,7 +82,7 @@ pub async fn preview_file_for_user(
     id: &str,
 ) -> Result<FilePreviewPayload, MesonAppError> {
     let want = RecordId::parse(id).ok_or_else(|| not_found_error("Invalid file id"))?;
-    let rows = FileQueryAll::query(v, valence::use_!(r"In **Meson file storage**, we **list File Query All** so the product can show or process the matching set for this workflow. Callers allowed for **Meson file storage** use the list; it is not a public dump of every field to anonymous visitors."))
+    let rows = FileQueryAll::query(v, valence::use_!(r"When you open a file's preview in **My Files**, we load the **files you uploaded** and pick out the one you asked for, to read its **type and size** and decide whether it can be previewed. If it can, we fetch the file's **contents** from storage and **show them to you** on the file page. Only rows **you uploaded** are requested."))
         .where_uploaded_by(RecordPredicate::Equals(user_rid))
         .await
         .map_err(|e| MesonAppError::io_source("preview file list failed", e))?;

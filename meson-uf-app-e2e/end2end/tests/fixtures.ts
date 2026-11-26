@@ -5,7 +5,8 @@ export type SeedAuthKind =
   | "owner"
   | "peer"
   | "unverified"
-  | "broken_session";
+  | "broken_session"
+  | "no_files_read";
 
 export type SeedFixtures = {
   owner_image_file_id: string;

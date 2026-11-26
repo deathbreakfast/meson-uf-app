@@ -4,8 +4,9 @@ use uf_product_macros::UfPermissionManifest;
 
 /// Meson app permission domain for the platform catalog.
 ///
-/// My Files list/preview is gated by authenticated session (not Gauge). This
-/// manifest still registers the domain for host inventory / future grants.
+/// My Files list, get and preview server fns and the `/meson` routes check
+/// [`MesonPermission::FilesRead`] through the host's `PermissionBackend`. The
+/// check fails closed, so each embedding host grants it to its members group.
 #[allow(clippy::expl_impl_clone_on_copy)]
 #[derive(UfPermissionManifest)]
 #[permission_manifest(
@@ -14,8 +15,8 @@ use uf_product_macros::UfPermissionManifest;
     domain_description = "My Files browser across File-trait uploads"
 )]
 pub enum MesonPermission {
-    /// Reserved for future shared-file browse grants.
-    #[permission(description = "List and preview own Meson uploads")]
+    /// Open My Files and read the signed-in user's own uploads.
+    #[permission(description = "List and preview own Meson uploads (Files read)")]
     FilesRead,
     /// Site owners: storage use and estimated cost for everyone, and the cost settings.
     #[permission(
@@ -23,3 +24,6 @@ pub enum MesonPermission {
     )]
     StorageAdmin,
 }
+
+/// Permission name checked by the My Files server fns and routes.
+pub const FILES_READ: &str = "FilesRead";

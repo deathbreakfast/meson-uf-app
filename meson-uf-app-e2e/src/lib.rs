@@ -19,4 +19,4 @@ pub use app::{shell, App};
 #[cfg(feature = "ssr")]
 pub use e2e_valence::{e2e_higgs_config, e2e_router, init_e2e_valence};
 #[cfg(feature = "ssr")]
-pub use gate_demos::inject_e2e_session_snapshot;
+pub use gate_demos::{inject_e2e_session_snapshot, E2ePermissionBackend};
