@@ -3,6 +3,9 @@
 Leptos host that mounts meson-app's My Files pages for Playwright. Lab-only:
 insecure session cookies, `POST /api/test/seed-data`, harness auth (no lepton sign-in).
 
+Every signed-in lab user holds `FilesRead`, the way a real host grants it to
+its members group; the `no_files_read` seed user is the denied case.
+
 ## Run
 
 ```bash

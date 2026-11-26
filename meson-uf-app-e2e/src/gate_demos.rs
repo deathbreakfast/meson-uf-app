@@ -222,7 +222,8 @@ pub async fn e2e_session_user_id(session: &tower_sessions::Session) -> Option<&'
 }
 
 /// Lab stand-in for a Gauge-backed host: every signed-in user is a member and
-/// holds `FilesRead`, except the `no_files_read` seed kind.
+/// holds `FilesRead`, except the `no_files_read` seed kind. A real host does
+/// the same by granting `FilesRead` to its members group in Gauge.
 #[cfg(feature = "ssr")]
 pub struct E2ePermissionBackend;
 

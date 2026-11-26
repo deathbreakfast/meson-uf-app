@@ -74,8 +74,17 @@ cargo check -p meson-app --features ssr
 | Consumer | Role |
 |----------|------|
 | [unified-field-embedded](https://github.com/unified-field-dev/unified-field-embedded) | Mount `<MesonRoutes />` at `/meson` |
+| `fambam-rockland-uf`, `unified-field-site` | Mount `<MesonRoutes />`; each must grant `FilesRead` (see below) |
 | [lepton](https://github.com/unified-field-dev/lepton) `lepton-host-adapter` | Upload API uses the same Meson blob store the UI previews |
 | Finance (planned) | File-trait uploads surface in My Files once wired |
+
+## Granting FilesRead
+
+My Files fails closed without the `FilesRead` permission, and the manifest has
+no default grant. Every host that mounts `MesonRoutes` with a Gauge-backed
+`PermissionBackend` has to grant `FilesRead` to its members group, or its users
+see "You can't open My Files yet". Today that means `fambam-rockland-uf`,
+`unified-field-embedded` and `unified-field-site`.
 
 ## Security
 
