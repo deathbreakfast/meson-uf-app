@@ -12,17 +12,30 @@ export type SeedFixtures = {
   owner_image_file_id: string;
   owner_text_file_id: string;
   peer_file_id: string;
+  owner_scanning_file_id: string;
+  owner_slow_scan_file_id: string;
+  owner_quarantined_file_id: string;
+  owner_big_file_id: string;
+  owner_pdf_file_id: string;
 };
 
-export async function seedAuth(page: Page, auth: SeedAuthKind) {
+/** New deletable rows a spec can ask for (`keep` is refused by its app). */
+export type FreshKind = "plain" | "quarantined" | "keep";
+
+export async function seedAuth(
+  page: Page,
+  auth: SeedAuthKind,
+  fresh: FreshKind[] = [],
+) {
   const res = await page.request.post("/api/test/seed-data", {
-    data: { auth },
+    data: { auth, fresh },
   });
   expect(res.ok()).toBeTruthy();
   return res.json() as Promise<{
     ok: boolean;
     auth: string;
     fixtures: SeedFixtures;
+    fresh: Partial<Record<FreshKind, string>>;
   }>;
 }
 

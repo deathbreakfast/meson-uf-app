@@ -1,5 +1,6 @@
 //! SSR server functions for My Files.
 
+mod actions;
 mod get;
 mod helpers;
 mod list;
@@ -10,9 +11,10 @@ mod storage;
 #[cfg(feature = "ssr")]
 mod storage_service;
 
-pub use get::get_my_file;
+pub use actions::{delete_my_file, download_my_file, DeleteResult, DownloadPayload};
+pub use get::{file_storage, get_my_file, FileStorage, MyFileDetail};
 pub use list::{list_my_files, subscribe_list_my_files, MyFileRow};
-pub use preview::{get_my_file_preview, FilePreviewPayload, PreviewMode};
+pub use preview::{get_my_file_preview, FilePreviewPayload, PreviewMode, PREVIEW_LIMIT_BYTES};
 pub use storage::{get_my_storage, get_site_storage, get_storage_settings, save_storage_settings};
 
 #[cfg(feature = "ssr")]

@@ -93,6 +93,7 @@ use leptos_router::{
 use uf_product_macros::uf_app;
 
 pub mod components;
+pub mod format;
 #[cfg(feature = "ssr")]
 pub mod generated;
 mod layout;

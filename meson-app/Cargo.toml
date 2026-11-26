@@ -49,8 +49,9 @@ uf-product-macros = { workspace = true }
 higgs = { workspace = true, optional = true }
 gauge = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true }
-web-sys = { workspace = true }
-base64 = { workspace = true, optional = true }
+web-sys = { workspace = true, features = ["Blob", "BlobPropertyBag", "Url", "HtmlAnchorElement"] }
+js-sys = { workspace = true }
+base64 = { workspace = true }
 chrono = { workspace = true }
 async-trait = { workspace = true, optional = true }
 photon-leptos = { workspace = true, default-features = false, optional = true }
@@ -92,7 +93,6 @@ ssr = [
     "lepton-auth/ssr",
     "lepton-auth-ui/ssr",
     "uf-search-core/ssr",
-    "dep:base64",
     "dep:spectra",
     "dep:async-trait",
     "meson-leptos/ssr",

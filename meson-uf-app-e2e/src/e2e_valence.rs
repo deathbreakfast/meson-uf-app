@@ -1,11 +1,12 @@
 //! Process-wide Valence + Higgs for Playwright (meson mem + sqlite alias).
 
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 
-use chrono::Utc;
+use chrono::{DateTime, Duration, Utc};
 use higgs::actor_policy::external_actor_json_policy;
 use higgs::{HiggsConfig, HiggsValenceFactory};
-use meson::generated::{E2eMesonFile, FileFileStatus};
+use meson::generated::{E2eMesonFile, E2eMesonOwnedFile, FileFileStatus};
 use meson::touch_schema_inventory;
 use valence::{
     register_backend_logical_names, router_key, Actor, DatabaseBackend, DatabaseRouter,
@@ -39,7 +40,15 @@ pub struct FixtureIds {
     pub owner_image_file_id: String,
     pub owner_text_file_id: String,
     pub peer_file_id: String,
+    pub owner_scanning_file_id: String,
+    pub owner_slow_scan_file_id: String,
+    pub owner_quarantined_file_id: String,
+    pub owner_big_file_id: String,
+    pub owner_pdf_file_id: String,
 }
+
+/// Size the "too big to preview" fixture claims (6 MB, over the 5 MB preview cap).
+const BIG_FILE_SIZE: i64 = 6_291_456;
 
 static E2E_STATE: OnceLock<Arc<E2eState>> = OnceLock::new();
 
@@ -70,39 +79,152 @@ fn peer_rid() -> RecordId {
     RecordId::new("user", "peer")
 }
 
-async fn seed_file(
-    valence: &Valence,
-    id: &str,
+/// One fixture row.
+struct SeedSpec<'a> {
+    id: &'a str,
     uploader: RecordId,
-    file_name: &str,
-    mime: &str,
-    storage_path: &str,
-    bytes: &[u8],
-) -> String {
+    file_name: &'a str,
+    mime: &'a str,
+    storage_path: &'a str,
+    bytes: &'a [u8],
+    /// Size recorded on the row when it differs from `bytes` (the too-big fixture).
+    size_bytes: Option<i64>,
+    status: FileFileStatus,
+    uploaded_at: DateTime<Utc>,
+}
+
+impl<'a> SeedSpec<'a> {
+    fn available(
+        id: &'a str,
+        uploader: RecordId,
+        file_name: &'a str,
+        mime: &'a str,
+        storage_path: &'a str,
+        bytes: &'a [u8],
+    ) -> Self {
+        Self {
+            id,
+            uploader,
+            file_name,
+            mime,
+            storage_path,
+            bytes,
+            size_bytes: None,
+            status: FileFileStatus::Available,
+            uploaded_at: Utc::now(),
+        }
+    }
+}
+
+/// Store the bytes and return `(extension, size)` for the row.
+async fn put_bytes(spec: &SeedSpec<'_>) -> (String, i64) {
     meson::installed_blob_store()
         .expect("e2e blob store installed before seeding")
-        .put(storage_path, bytes)
+        .put(spec.storage_path, spec.bytes)
         .await
         .expect("put fixture bytes");
-    let size_bytes = i64::try_from(bytes.len()).expect("fixture length fits i64");
-    let extension = file_name.rsplit('.').next().unwrap_or("bin").to_string();
+    let size_bytes = spec
+        .size_bytes
+        .unwrap_or_else(|| i64::try_from(spec.bytes.len()).expect("fixture length fits i64"));
+    let extension = spec
+        .file_name
+        .rsplit('.')
+        .next()
+        .unwrap_or("bin")
+        .to_string();
+    (extension, size_bytes)
+}
+
+async fn seed_file(valence: &Valence, spec: SeedSpec<'_>) -> String {
+    let (extension, size_bytes) = put_bytes(&spec).await;
     let row = E2eMesonFile::new(
-        file_name.to_string(),
+        spec.file_name.to_string(),
         extension,
-        mime.to_string(),
+        spec.mime.to_string(),
         size_bytes,
-        storage_path.to_string(),
-        FileFileStatus::Available,
-        uploader,
-        Utc::now(),
+        spec.storage_path.to_string(),
+        spec.status,
+        spec.uploader,
+        spec.uploaded_at,
     )
     .expect("E2eMesonFile::new");
-    let created = E2eMesonFile::upsert(id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Meson File** save for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let created = E2eMesonFile::upsert(spec.id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Meson File** save for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert e2e_meson_file");
     created
         .id()
-        .map_or_else(|| id.to_string(), std::string::ToString::to_string)
+        .map_or_else(|| spec.id.to_string(), std::string::ToString::to_string)
+}
+
+/// A row in `e2e_meson_owned_file`, which its uploader may delete; its app
+/// refuses names starting with `keep-`.
+async fn seed_owned_file(valence: &Valence, spec: SeedSpec<'_>) -> String {
+    let (extension, size_bytes) = put_bytes(&spec).await;
+    let row = E2eMesonOwnedFile::new(
+        spec.file_name.to_string(),
+        extension,
+        spec.mime.to_string(),
+        size_bytes,
+        spec.storage_path.to_string(),
+        spec.status,
+        spec.uploader,
+        spec.uploaded_at,
+    )
+    .expect("E2eMesonOwnedFile::new");
+    let created = E2eMesonOwnedFile::upsert(spec.id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Meson Owned File** save for `e2e_valence` so delete specs get their own rows to delete. CI and developers running the suite only."))
+        .await
+        .expect("upsert e2e_meson_owned_file");
+    created
+        .id()
+        .map_or_else(|| spec.id.to_string(), std::string::ToString::to_string)
+}
+
+/// New deletable rows for one spec, so delete specs never share rows.
+///
+/// `plain` is a clean text file, `quarantined` a flagged image, and `keep` a
+/// clean image its app refuses to delete. Unknown kinds are skipped.
+pub async fn seed_fresh_files(kinds: &[String]) -> Vec<(String, String)> {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let system = e2e_system_valence();
+    let mut out = Vec::new();
+    for kind in kinds {
+        let n = NEXT.fetch_add(1, Ordering::Relaxed);
+        let id = format!("fresh-{kind}-{n}");
+        let path = format!("{id}.bin");
+        let spec = match kind.as_str() {
+            "plain" => SeedSpec::available(
+                &id,
+                owner_rid(),
+                "delete-me.txt",
+                "text/plain",
+                &path,
+                E2E_TEXT_BYTES,
+            ),
+            "quarantined" => SeedSpec {
+                status: FileFileStatus::Quarantined,
+                ..SeedSpec::available(
+                    &id,
+                    owner_rid(),
+                    "flagged-statement.png",
+                    "image/png",
+                    &path,
+                    E2E_PNG_BYTES,
+                )
+            },
+            "keep" => SeedSpec::available(
+                &id,
+                owner_rid(),
+                "keep-receipt.png",
+                "image/png",
+                &path,
+                E2E_PNG_BYTES,
+            ),
+            _ => continue,
+        };
+        let created = seed_owned_file(&system, spec).await;
+        out.push((kind.clone(), created));
+    }
+    out
 }
 
 /// Build shared Valence/Higgs once and seed baseline fixtures.
@@ -154,32 +276,112 @@ pub async fn init_e2e_valence() {
 
     let owner_image_file_id = seed_file(
         &system,
-        "owner-image",
-        owner_rid(),
-        "receipt.png",
-        "image/png",
-        "owner-image.png",
-        E2E_PNG_BYTES,
+        SeedSpec::available(
+            "owner-image",
+            owner_rid(),
+            "receipt.png",
+            "image/png",
+            "owner-image.png",
+            E2E_PNG_BYTES,
+        ),
     )
     .await;
     let owner_text_file_id = seed_file(
         &system,
-        "owner-text",
-        owner_rid(),
-        "notes.txt",
-        "text/plain",
-        "owner-text.txt",
-        E2E_TEXT_BYTES,
+        SeedSpec::available(
+            "owner-text",
+            owner_rid(),
+            "notes.txt",
+            "text/plain",
+            "owner-text.txt",
+            E2E_TEXT_BYTES,
+        ),
     )
     .await;
     let peer_file_id = seed_file(
         &system,
-        "peer-file",
-        peer_rid(),
-        "peer-only.png",
-        "image/png",
-        "peer-file.png",
-        E2E_PNG_BYTES,
+        SeedSpec::available(
+            "peer-file",
+            peer_rid(),
+            "peer-only.png",
+            "image/png",
+            "peer-file.png",
+            E2E_PNG_BYTES,
+        ),
+    )
+    .await;
+    let owner_scanning_file_id = seed_file(
+        &system,
+        SeedSpec {
+            status: FileFileStatus::PendingVirusScan,
+            uploaded_at: Utc::now() - Duration::minutes(1),
+            ..SeedSpec::available(
+                "owner-scanning",
+                owner_rid(),
+                "hardware-store.jpg",
+                "image/jpeg",
+                "owner-scanning.jpg",
+                E2E_PNG_BYTES,
+            )
+        },
+    )
+    .await;
+    let owner_slow_scan_file_id = seed_file(
+        &system,
+        SeedSpec {
+            status: FileFileStatus::PendingVirusScan,
+            uploaded_at: Utc::now() - Duration::hours(3),
+            ..SeedSpec::available(
+                "owner-slow-scan",
+                owner_rid(),
+                "slow-scan.jpg",
+                "image/jpeg",
+                "owner-slow-scan.jpg",
+                E2E_PNG_BYTES,
+            )
+        },
+    )
+    .await;
+    let owner_quarantined_file_id = seed_file(
+        &system,
+        SeedSpec {
+            status: FileFileStatus::Quarantined,
+            ..SeedSpec::available(
+                "owner-quarantined",
+                owner_rid(),
+                "statement-sept.png",
+                "image/png",
+                "owner-quarantined.png",
+                E2E_PNG_BYTES,
+            )
+        },
+    )
+    .await;
+    let owner_big_file_id = seed_file(
+        &system,
+        SeedSpec {
+            size_bytes: Some(BIG_FILE_SIZE),
+            ..SeedSpec::available(
+                "owner-big",
+                owner_rid(),
+                "ledger-export-2026-10.log",
+                "text/plain",
+                "owner-big.log",
+                E2E_TEXT_BYTES,
+            )
+        },
+    )
+    .await;
+    let owner_pdf_file_id = seed_file(
+        &system,
+        SeedSpec::available(
+            "owner-pdf",
+            owner_rid(),
+            "lease-2026.pdf",
+            "application/pdf",
+            "owner-pdf.pdf",
+            b"%PDF-1.4\n%fixture\n",
+        ),
     )
     .await;
 
@@ -203,6 +405,11 @@ pub async fn init_e2e_valence() {
             owner_image_file_id,
             owner_text_file_id,
             peer_file_id,
+            owner_scanning_file_id,
+            owner_slow_scan_file_id,
+            owner_quarantined_file_id,
+            owner_big_file_id,
+            owner_pdf_file_id,
         }),
     });
     let _ = E2E_STATE.set(state);

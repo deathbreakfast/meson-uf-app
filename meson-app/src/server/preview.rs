@@ -3,6 +3,10 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Largest file the page previews (matches lepton's upload cap). Bigger files
+/// get [`PreviewMode::TooBig`] and a Download button.
+pub const PREVIEW_LIMIT_BYTES: usize = 5 * 1024 * 1024;
+
 /// How the client should render preview bytes.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PreviewMode {
@@ -12,6 +16,8 @@ pub enum PreviewMode {
     Text,
     /// No in-app preview; metadata only (bytes omitted).
     Unsupported,
+    /// Over [`PREVIEW_LIMIT_BYTES`]; bytes never fetched.
+    TooBig,
 }
 
 /// Preview payload returned to the UI.
@@ -21,7 +27,7 @@ pub struct FilePreviewPayload {
     pub mode: PreviewMode,
     /// Mime type from the File row.
     pub mime_type: String,
-    /// Base64 (image) or UTF-8 (text); empty when unsupported.
+    /// Base64 (image) or UTF-8 (text); empty when unsupported or too big.
     pub content: String,
     /// Byte length of the stored object.
     pub size_bytes: i64,
