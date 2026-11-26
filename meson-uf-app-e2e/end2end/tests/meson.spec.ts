@@ -9,8 +9,8 @@ test.describe("pw-meson", () => {
 
     await expect(page.getByTestId("meson-app-root")).toBeAttached();
     await expect(page.getByTestId("meson-my-files")).toBeAttached();
-    await expect(page.getByText("receipt.png")).toBeVisible();
-    await expect(page.getByText("notes.txt")).toBeVisible();
+    await expect(page.getByText("receipt.png", { exact: true })).toBeVisible();
+    await expect(page.getByText("notes.txt", { exact: true })).toBeVisible();
     await expect(page.getByText(/Showing \d+ files/)).toBeVisible();
   });
 
@@ -140,6 +140,6 @@ test.describe("pw-meson", () => {
 
     await page.getByTestId("meson-keeps-close").click();
     await expect(dialog).toBeHidden();
-    await expect(page.getByText("receipt.png")).toBeVisible();
+    await expect(page.getByText("receipt.png", { exact: true })).toBeVisible();
   });
 });
