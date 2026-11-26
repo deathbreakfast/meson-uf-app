@@ -59,8 +59,7 @@
 //! permission, and the manifest ships no default grant. A host with a
 //! Gauge-backed `PermissionBackend` must grant `FilesRead` to its members
 //! group; otherwise signed-in users see "You can't open My Files yet". The
-//! hosts that mount `MesonRoutes` today are `fambam-rockland-uf`,
-//! `unified-field-embedded` and `unified-field-site`. The e2e lab grants it
+//! embedded, FamBam and site hosts mount `MesonRoutes` today. The e2e lab grants it
 //! to every signed-in user (`E2ePermissionBackend`) and withholds it for its
 //! `no_files_read` user.
 //!
