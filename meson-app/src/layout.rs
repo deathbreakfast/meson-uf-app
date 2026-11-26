@@ -47,6 +47,9 @@ pub fn MesonLayout() -> impl IntoView {
                         <div id="meson-nav-my-files">
                             <NavigationLink path="/meson" value="/meson" icon=icondata::AiFolderOutlined exact=true test_id="nav-meson-files">"My Files"</NavigationLink>
                         </div>
+                        <div id="meson-nav-storage">
+                            <NavigationLink path="/meson/storage" value="/meson/storage" icon=icondata::AiCloudOutlined test_id="nav-meson-storage">"Storage"</NavigationLink>
+                        </div>
                     </NavigationBody>
                 </Navigation>
             </ShellLeftNav>

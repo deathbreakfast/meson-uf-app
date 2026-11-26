@@ -7,3 +7,11 @@ meson.spec.ts › pw-meson › pw-meson-my-files-error-sad
 meson.spec.ts › pw-meson › pw-meson-no-files-read-denied-sad
 meson.spec.ts › pw-meson › pw-meson-file-not-in-your-files-sad
 meson.spec.ts › pw-meson › pw-meson-keeps-dialog-happy
+storage.spec.ts › pw-storage › storage-latest-partition-only-happy
+storage.spec.ts › pw-storage › storage-no-partitions-live-estimate-sad
+storage.spec.ts › pw-storage › storage-stale-partition-banner-sad
+storage.spec.ts › pw-storage › storage-no-settings-size-only-sad
+storage.spec.ts › pw-storage › storage-copies-override-happy
+storage.spec.ts › pw-storage › storage-site-owner-everyone-and-settings-happy
+storage.spec.ts › pw-storage › storage-member-everyone-link-denied-sad
+storage.spec.ts › pw-storage › narrow › storage-phone-width-single-column
