@@ -218,7 +218,9 @@ mod tests {
     use chrono::Duration;
 
     use super::*;
-    use crate::storage::test_support::{mem_router, setup_valence, write_row, RowSpec};
+    use crate::storage::test_support::{
+        grant_storage_admin, mem_router, setup_valence, write_row, RowSpec,
+    };
     use crate::storage::view::{CopiesSource, PriceSource};
 
     fn user() -> RecordId {
@@ -335,6 +337,21 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn schema_rule_blocks_settings_write_without_grant() {
+        let system = setup_valence().await;
+        let session = as_user(&system);
+        // The server fn's own check says yes; the Valence rule still says no.
+        let err = save_settings(&session, true, user(), Some(2), Some(0.5), now())
+            .await
+            .expect_err("no StorageAdmin grant");
+        assert!(format!("{err:?}").contains("Access denied"), "{err:?}");
+        assert_eq!(
+            storage_settings(&system).await.expect("read"),
+            StorageSettings::default()
+        );
+    }
+
+    #[tokio::test]
     async fn admin_saves_settings_and_site_view_uses_them() {
         let system = setup_valence().await;
         let (router, events) = mem_router();
@@ -357,6 +374,7 @@ mod tests {
             RowSpec::owner_total(ds, "run-7", "u2", 3_000_000_000),
         )
         .await;
+        grant_storage_admin(&system, "u1").await;
         let session = as_user(&system);
 
         assert_eq!(

@@ -159,3 +159,33 @@ pub async fn setup_valence() -> Valence {
         .expect("sync_typed_tables_from_registry");
     valence
 }
+
+/// Make `user_id` a Gauge Super User, which `StorageAdmin` checks accept.
+///
+/// `system` must be the System-actor Valence from [`setup_valence`].
+pub async fn grant_storage_admin(system: &Valence, user_id: &str) {
+    use valence::Model;
+    let ensured = gauge::super_user::ensure_super_user_group(system)
+        .await
+        .expect("ensure super user group");
+    let principal = gauge::generated::PermissionUserPrincipal::upsert(
+        &format!("user:{user_id}"),
+        gauge::generated::PermissionUserPrincipal::new(
+            valence::RecordId::new("user", user_id),
+            user_id.to_string(),
+        )
+        .expect("new user principal"),
+        system,
+        valence::use_!(r"**Test:** Fixture **Permission User Principal** save so the storage settings tests can act as a site owner. CI and developers running the suite only."),
+    )
+    .await
+    .expect("upsert user principal");
+    ensured
+        .relate_to_member_record(
+            principal.id().expect("principal id"),
+            system,
+            valence::use_!(r"**Test:** Fixture member-edge relate so the storage settings tests can act as a site owner. CI and developers running the suite only."),
+        )
+        .await
+        .expect("relate member");
+}
