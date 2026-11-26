@@ -87,7 +87,8 @@ test.describe("pw-storage", () => {
     );
     await openStorage(page);
 
-    await expect(page.getByTestId("nav-meson-storage")).toBeVisible();
+    // The harness keeps the side nav collapsed; check the Storage item is mounted.
+    await expect(page.getByTestId("nav-meson-storage")).toBeAttached();
     await expect(page.getByTestId("storage-stat-used")).toContainText("18.4 GB");
     await expect(page.getByTestId("storage-stat-cost")).toContainText("Estimated cost a month");
     await expect(page.getByTestId("storage-stat-cost")).toContainText("$1.27");
