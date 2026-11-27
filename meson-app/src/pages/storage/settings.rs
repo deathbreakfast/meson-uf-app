@@ -5,9 +5,9 @@ use leptos::task::spawn_local;
 use uf_product::components::{Caption1, FormHint, SpacingSize};
 use uf_product::primitives::{
     Button, ButtonAppearance, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface,
-    DialogTitle, Field, FieldValidationState, Flex, Input, InputAppearance, InputBind, InputPrefix,
-    InputRule, InputRuleTrigger, InputSuffix, InputType, MessageBar, MessageBarBody,
-    MessageBarIntent, Radio, RadioGroup, RadioGroupBind,
+    DialogTitle, Field, FieldValidationState, Flex, Input, InputAppearance, InputBind, InputRule,
+    InputRuleTrigger, InputSuffix, InputType, MessageBar, MessageBarBody, MessageBarIntent, Radio,
+    RadioGroup, RadioGroupBind,
 };
 
 use super::format::{copies_text, parse_copies, parse_price, price_of, worked_out};
@@ -183,7 +183,6 @@ pub(super) fn SettingsDialog(
                                                 ..InputBind::new(price_input)
                                             }
                                         >
-                                            <InputPrefix slot>"$"</InputPrefix>
                                             <InputSuffix slot>{currency}</InputSuffix>
                                         </Input>
                                     </div>

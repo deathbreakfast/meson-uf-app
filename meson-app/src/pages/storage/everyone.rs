@@ -18,13 +18,15 @@ use uf_product::primitives::{
 };
 
 use super::banners::{Banner, Banners};
+use super::cards::{
+    ByAppCard, HowCard, MainColumn, SideColumn, StorageSkeleton, StorageTime, TwoColumns,
+};
 use super::format::{
     copies_text, cost_stat, format_bytes, format_cost, format_count, is_stale, run_status,
     RunStatus,
 };
 use super::run::{run_storage_now, StorageRunInfo, JOB_NAME};
-use super::{ByAppCard, HowCard, PageActions, StorageSkeleton, StorageTime, TwoColumns};
-use super::{MainColumn, SideColumn};
+use super::PageActions;
 use crate::components::ErrorBar;
 use crate::storage::view::{PersonRow, PriceSource, SiteStorageView, SizeSource};
 
