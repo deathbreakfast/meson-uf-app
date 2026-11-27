@@ -10,7 +10,7 @@ use leptos_router::{
     components::{ParentRoute, Route},
     path,
 };
-use meson_app::{FileDetailPage, MesonLayout, MyFilesPage};
+use meson_app::{FileDetailPage, MesonLayout, MyFilesPage, StoragePage};
 
 /// Same paths as [`meson_app::MesonRoutes`], without Lazy route views.
 #[component(transparent)]
@@ -19,6 +19,7 @@ pub fn MesonRoutesEager() -> impl leptos_router::MatchNestedRoutes + Clone {
         <ParentRoute path=path!("meson") view=MesonLayout>
             <Route path=path!("") view=MyFilesPage />
             <Route path=path!("files/:id") view=FileDetailPage />
+            <Route path=path!("storage") view=StoragePage />
         </ParentRoute>
     }
     .into_inner()

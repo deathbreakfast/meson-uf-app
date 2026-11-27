@@ -29,6 +29,7 @@ async fn main() -> anyhow::Result<()> {
 
 async fn serve() -> anyhow::Result<()> {
     init_e2e_valence().await;
+    meson_uf_app_e2e::seed::init_e2e_storage().await;
 
     let conf = get_configuration(None).expect("leptos config");
     let leptos_options = conf.leptos_options;

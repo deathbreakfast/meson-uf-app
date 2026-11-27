@@ -5,7 +5,7 @@
 use leptos::prelude::*;
 use leptos_router::{lazy_route, LazyRoute};
 
-use crate::{FileDetailPage, MesonLayout, MyFilesPage};
+use crate::{FileDetailPage, MesonLayout, MyFilesPage, StoragePage};
 
 /// Eager layout shell for `/meson/*`.
 #[component]
@@ -40,5 +40,20 @@ impl LazyRoute for FileDetailRoute {
 
     fn view(_this: Self) -> AnyView {
         view! { <FileDetailPage /> }.into_any()
+    }
+}
+
+/// Lazy `/meson/storage` Storage page.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct StorageRoute;
+
+#[lazy_route]
+impl LazyRoute for StorageRoute {
+    fn data() -> Self {
+        Self
+    }
+
+    fn view(_this: Self) -> AnyView {
+        view! { <StoragePage /> }.into_any()
     }
 }

@@ -162,6 +162,8 @@ pub struct StorageView {
     pub size: SizeSource,
     /// Where the copy count came from.
     pub copies: CopiesSource,
+    /// Copies the blob store reported, even when a site owner's number wins.
+    pub copies_reported: Option<i64>,
     /// Where the price came from.
     pub price: PriceSource,
     /// The 30-day chart.
@@ -294,6 +296,7 @@ pub fn build_view(input: ViewInput, settings: &StorageSettings) -> StorageView {
         },
         missing_size_files: input.total.missing_size_files,
         copies,
+        copies_reported: input.copies_reported.filter(|n| *n > 0),
         price,
         history: input.history,
         by_app,
@@ -419,6 +422,7 @@ mod tests {
         };
         let view = build_view(input(4_000_000_000, Some(3)), &settings);
         assert_eq!(view.copies, CopiesSource::Set(2));
+        assert_eq!(view.copies_reported, Some(3));
         assert_eq!(view.totals.cost_per_month, Some(4.0));
         assert_eq!(view.missing_size_files, 1);
         assert_eq!(view.by_app[0].app_name, "Receipt scan");

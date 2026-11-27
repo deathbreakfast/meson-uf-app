@@ -2813,6 +2813,7 @@ dependencies = [
  "chrono",
  "console_error_panic_hook",
  "console_log",
+ "gauge",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "higgs",
@@ -2833,6 +2834,7 @@ dependencies = [
  "tower-sessions",
  "uf-integrations",
  "uf-product",
+ "uf-spectra",
  "uf-valence",
  "wasm-bindgen",
 ]

@@ -19,6 +19,7 @@ axum = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
 console_log = { version = "1", optional = true }
+gauge = { workspace = true, optional = true }
 higgs = { workspace = true, optional = true }
 higgs-identity = { workspace = true, optional = true }
 icondata = { workspace = true }
@@ -32,6 +33,7 @@ meson-app = { path = "../meson-app", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 simple_logger = { version = "5", optional = true }
+spectra = { workspace = true, optional = true, features = ["mem"] }
 tokio = { workspace = true, optional = true }
 tower-http = { version = "0.6", features = ["fs"], optional = true }
 tower-sessions = { workspace = true, optional = true }
@@ -76,6 +78,8 @@ ssr = [
     "dep:higgs-identity",
     "dep:valence",
     "dep:meson",
+    "dep:spectra",
+    "dep:gauge",
 ]
 
 [[bin]]

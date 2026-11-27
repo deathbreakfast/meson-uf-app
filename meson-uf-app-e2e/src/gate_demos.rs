@@ -16,6 +16,9 @@ pub const E2E_PEER_USER: &str = "user:peer";
 pub const E2E_UNVERIFIED_USER: &str = "user:unverified";
 #[cfg(feature = "ssr")]
 pub const E2E_NO_FILES_READ_USER: &str = "user:nofiles";
+/// Holds `StorageAdmin` as well as `FilesRead`.
+#[cfg(feature = "ssr")]
+pub const E2E_SITE_OWNER_USER: &str = "user:siteowner";
 /// Not a `table:id` shape — `RecordId::parse` rejects it, so any handler
 /// calling `session_user_record_id` fails with a real `auth:` error.
 #[cfg(feature = "ssr")]
@@ -37,6 +40,8 @@ pub enum E2eAuthKind {
     BrokenSession,
     /// Signed in and verified, but `FilesRead` is withheld (see [`E2ePermissionBackend`]).
     NoFilesRead,
+    /// A site owner: `FilesRead` plus `StorageAdmin` (Everyone tab, cost settings).
+    SiteOwner,
 }
 
 impl E2eAuthKind {
@@ -48,6 +53,7 @@ impl E2eAuthKind {
             Self::Unverified => "unverified",
             Self::BrokenSession => "broken_session",
             Self::NoFilesRead => "no_files_read",
+            Self::SiteOwner => "site_owner",
         }
     }
 
@@ -58,6 +64,7 @@ impl E2eAuthKind {
             "unverified" | "authenticated_unverified" => Self::Unverified,
             "broken_session" => Self::BrokenSession,
             "no_files_read" => Self::NoFilesRead,
+            "site_owner" => Self::SiteOwner,
             _ => Self::Anonymous,
         }
     }
@@ -71,6 +78,7 @@ impl E2eAuthKind {
             Self::Unverified => Some(E2E_UNVERIFIED_USER),
             Self::BrokenSession => Some(E2E_BROKEN_SESSION_USER),
             Self::NoFilesRead => Some(E2E_NO_FILES_READ_USER),
+            Self::SiteOwner => Some(E2E_SITE_OWNER_USER),
         }
     }
 
@@ -105,6 +113,14 @@ impl E2eAuthKind {
                 user_id: "nofiles".into(),
                 email: Some("nofiles@example.com".into()),
                 display_name: Some("No Files Read".into()),
+                avatar_url: None,
+                roles: vec!["user".into()],
+                email_verified: true,
+            }),
+            Self::SiteOwner => AuthSession::Authenticated(AuthenticatedUser {
+                user_id: "siteowner".into(),
+                email: Some("siteowner@example.com".into()),
+                display_name: Some("Site Owner".into()),
                 avatar_url: None,
                 roles: vec!["user".into()],
                 email_verified: true,
@@ -222,7 +238,8 @@ pub async fn e2e_session_user_id(session: &tower_sessions::Session) -> Option<&'
 }
 
 /// Lab stand-in for a Gauge-backed host: every signed-in user is a member and
-/// holds `FilesRead`, except the `no_files_read` seed kind.
+/// holds `FilesRead`, except the `no_files_read` seed kind. Only `site_owner`
+/// also holds `StorageAdmin`.
 #[cfg(feature = "ssr")]
 pub struct E2ePermissionBackend;
 
@@ -238,6 +255,7 @@ impl uf_product::permissions::PermissionBackend for E2ePermissionBackend {
             .map_or(E2eAuthKind::Anonymous, |raw| E2eAuthKind::parse(&raw));
         let allowed = match kind {
             E2eAuthKind::Anonymous | E2eAuthKind::NoFilesRead => false,
+            E2eAuthKind::SiteOwner => matches!(permission_name, "FilesRead" | "StorageAdmin"),
             _ => permission_name == "FilesRead",
         };
         Ok(allowed)
