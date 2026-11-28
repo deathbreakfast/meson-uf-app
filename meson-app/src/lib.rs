@@ -29,6 +29,7 @@
 //! 2. Mount `<MesonRoutes />` under host `<Routes>`.
 //! 3. Call [`meson::install_blob_store`] once at host boot (often
 //!    [`meson::blob_store_from_env`]).
+//! 4. Grant `FilesRead` to your members group (see below).
 //!
 //! ```rust,ignore
 //! use meson::{blob_store_from_env, install_blob_store};
@@ -51,6 +52,16 @@
 //!
 //! On success `/meson` shows My Files; `/meson/files/:id` opens preview for owned
 //! rows. Anonymous visitors hit the host auth gate.
+//!
+//! # Grant `FilesRead`
+//!
+//! My Files and its preview server fns fail closed without the `FilesRead`
+//! permission, and the manifest ships no default grant. A host with a
+//! Gauge-backed `PermissionBackend` must grant `FilesRead` to its members
+//! group; otherwise signed-in users see "You can't open My Files yet". The
+//! embedded, FamBam and site hosts mount `MesonRoutes` today. The e2e lab grants it
+//! to every signed-in user (`E2ePermissionBackend`) and withholds it for its
+//! `no_files_read` user.
 //!
 //! **Next:** use the same installed store for host `/api/files/*` upload routes
 //! so metadata keys match stored bytes. Prefer
