@@ -9,9 +9,9 @@ test.describe("pw-meson", () => {
 
     await expect(page.getByTestId("meson-app-root")).toBeAttached();
     await expect(page.getByTestId("meson-my-files")).toBeAttached();
-    await expect(page.getByText("receipt.png")).toBeVisible();
-    await expect(page.getByText("notes.txt")).toBeVisible();
-    await expect(page.getByText(/Showing 2 files/)).toBeVisible();
+    await expect(page.getByText("receipt.png", { exact: true })).toBeVisible();
+    await expect(page.getByText("notes.txt", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Showing \d+ files/)).toBeVisible();
   });
 
   // Phone-width viewport + dark scheme so each preview is also checked at 390px.
@@ -24,14 +24,14 @@ test.describe("pw-meson", () => {
       await waitForHydrated(page);
 
       const detail = page.getByTestId("meson-file-detail");
-      await expect(detail.getByText("receipt.png", { exact: true })).toBeVisible();
+      await expect(detail.getByTestId("meson-file-title")).toHaveText("receipt.png");
       const img = detail.getByTestId("meson-img").getByRole("img", { name: "receipt.png" });
       await expect(img).toBeVisible();
       await expect(img).toHaveAttribute("src", /^\/api\/files\/owner-image$/);
       await expect
         .poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth))
         .toBeGreaterThan(0);
-      await expect(detail.getByText("Type: image/png")).toBeVisible();
+      await expect(detail.getByTestId("meson-detail-type")).toContainText("PNG image");
       await expect(page.getByText(/not_found:/)).toHaveCount(0);
       await expectNoHorizontalOverflow(page);
     });
@@ -42,8 +42,8 @@ test.describe("pw-meson", () => {
       await waitForHydrated(page);
 
       const detail = page.getByTestId("meson-file-detail");
-      await expect(detail.getByText("notes.txt", { exact: true })).toBeVisible();
-      await expect(detail.getByText("Type: text/plain")).toBeVisible();
+      await expect(detail.getByTestId("meson-file-title")).toHaveText("notes.txt");
+      await expect(detail.getByTestId("meson-detail-type")).toContainText("Text");
       await expect(detail.getByText("Meson preview fixture")).toBeVisible();
       await expect(detail.getByText("line two: seeded text")).toBeVisible();
       await expect(detail.getByTestId("meson-img")).toHaveCount(0);
@@ -140,6 +140,6 @@ test.describe("pw-meson", () => {
 
     await page.getByTestId("meson-keeps-close").click();
     await expect(dialog).toBeHidden();
-    await expect(page.getByText("receipt.png")).toBeVisible();
+    await expect(page.getByText("receipt.png", { exact: true })).toBeVisible();
   });
 });

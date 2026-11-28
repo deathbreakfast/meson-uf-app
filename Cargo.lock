@@ -2716,7 +2716,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "meson"
 version = "0.1.0"
-source = "git+https://github.com/unified-field-dev/meson?branch=main#752fbb1b2adb5f4a17183dd900f8d8d4ef169104"
+source = "git+https://github.com/unified-field-dev/meson?branch=main#9161265404e6974715caaf8a3fa60a23ac92211c"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2736,6 +2736,7 @@ dependencies = [
  "uf-valence",
  "uf-valence-codegen",
  "uuid",
+ "zip",
 ]
 
 [[package]]
@@ -2752,6 +2753,7 @@ dependencies = [
  "http",
  "icondata",
  "icondata_core",
+ "js-sys",
  "lepton-auth",
  "lepton-auth-ui",
  "lepton-shell",
@@ -2787,7 +2789,7 @@ dependencies = [
 [[package]]
 name = "meson-leptos"
 version = "0.1.0"
-source = "git+https://github.com/unified-field-dev/meson?branch=main#752fbb1b2adb5f4a17183dd900f8d8d4ef169104"
+source = "git+https://github.com/unified-field-dev/meson?branch=main#9161265404e6974715caaf8a3fa60a23ac92211c"
 dependencies = [
  "axum",
  "higgs",

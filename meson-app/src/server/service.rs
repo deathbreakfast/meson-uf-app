@@ -1,17 +1,13 @@
 //! Testable My Files service logic (session Valence + injected blob store).
 //!
-//! Get/preview resolve ownership via owner-scoped [`FileQueryAll`] then
-//! [`find_file_in_owned_rows`]. The full-owner scan keeps foreign and missing
-//! ids on the same not-found path across File implementors; scaling (get-by-id
-//! on the File union) is deferred to Valence/Meson trait work.
+//! Get/preview load the one row with [`meson::get_by_id`], scoped to the
+//! session user, so foreign and missing ids land on the same not-found path.
 
 use meson::generated::{FileFields, FileQueryAll};
-use meson::{find_file_in_owned_rows, preview_kind, PreviewKind};
+use meson::{get_by_id, preview_kind, PreviewKind};
 use valence::{RecordId, RecordPredicate, Valence};
 
-use super::helpers::{
-    io_error, not_found_error, reject_oversized_preview_metadata, MesonAppError, MAX_PREVIEW_BYTES,
-};
+use super::helpers::{exceeds_preview_limit, not_found_error, MesonAppError, MAX_PREVIEW_BYTES};
 use super::list::MyFileRow;
 use super::preview::{FilePreviewPayload, PreviewMode};
 
@@ -59,20 +55,21 @@ pub async fn get_file_for_user(
     id: &str,
 ) -> Result<MyFileRow, MesonAppError> {
     let want = RecordId::parse(id).ok_or_else(|| not_found_error("Invalid file id"))?;
-    let rows = FileQueryAll::query(v, valence::use_!(r"When you open one file in **My Files**, we load the **files you uploaded** and pick out the one you asked for, so its page can show that file's **name, type, size, scan status, upload time** and **app**. Only rows **you uploaded** are requested, so a link to someone else's file finds nothing. The details are **shown to you** on the file page."))
-        .where_uploaded_by(RecordPredicate::Equals(user_rid))
+    let row = get_by_id(v, valence::use_!(r"When you open one file in **My Files**, we load **that one file's details** so its page can show its **name, type, size, scan status, upload time** and **app**. Only a file **you uploaded** is found, so a link to someone else's file finds nothing. The details are **shown to you** on the file page."), &user_rid, &want)
         .await
-        .map_err(|e| MesonAppError::io_source("get file list failed", e))?;
-    let row = find_file_in_owned_rows(rows, &want).ok_or_else(|| {
-        tracing::debug!(
-            target: "security",
-            file_id = %want,
-            outcome = "idor_collapse",
-            "owned File row missing; returning not_found"
-        );
-        not_found_error("File not found")
-    })?;
+        .map_err(|e| MesonAppError::io_source("get file failed", e))?
+        .ok_or_else(|| idor_collapse(&want))?;
     row_from_file(&row)
+}
+
+fn idor_collapse(want: &RecordId) -> MesonAppError {
+    tracing::debug!(
+        target: "security",
+        file_id = %want,
+        outcome = "idor_collapse",
+        "owned File row missing; returning not_found"
+    );
+    not_found_error("File not found")
 }
 
 /// Preview owned file bytes via the installed blob store ([`meson::FileBytes`]).
@@ -82,19 +79,10 @@ pub async fn preview_file_for_user(
     id: &str,
 ) -> Result<FilePreviewPayload, MesonAppError> {
     let want = RecordId::parse(id).ok_or_else(|| not_found_error("Invalid file id"))?;
-    let rows = FileQueryAll::query(v, valence::use_!(r"When you open a file's preview in **My Files**, we load the **files you uploaded** and pick out the one you asked for, to read its **type and size** and decide whether it can be previewed. If it can, we fetch the file's **contents** from storage and **show them to you** on the file page. Only rows **you uploaded** are requested."))
-        .where_uploaded_by(RecordPredicate::Equals(user_rid))
+    let row = get_by_id(v, valence::use_!(r"When you open a file's preview in **My Files**, we load **that one file's details** to read its **type and size** and decide whether it can be previewed. If it can, we fetch the file's **contents** from storage and **show them to you** on the file page. Only a file **you uploaded** is found."), &user_rid, &want)
         .await
-        .map_err(|e| MesonAppError::io_source("preview file list failed", e))?;
-    let row = find_file_in_owned_rows(rows, &want).ok_or_else(|| {
-        tracing::debug!(
-            target: "security",
-            file_id = %want,
-            outcome = "idor_collapse",
-            "owned File row missing; returning not_found"
-        );
-        not_found_error("File not found")
-    })?;
+        .map_err(|e| MesonAppError::io_source("preview file get failed", e))?
+        .ok_or_else(|| idor_collapse(&want))?;
 
     let mime = row.mime_type().clone();
     let size_bytes = *row.size_bytes();
@@ -110,13 +98,24 @@ pub async fn preview_file_for_user(
     }
 
     // Bound allocation before fetching blob bytes (defense in depth after fetch too).
-    reject_oversized_preview_metadata(size_bytes)?;
+    if exceeds_preview_limit(size_bytes) {
+        return Ok(too_big(mime, size_bytes));
+    }
 
     let bytes = meson::FileBytes::get_file_bytes(&row)
         .await
         .map_err(|e| MesonAppError::io_source("blob get failed", e))?;
 
     preview_payload_from_bytes(&mime, &bytes, size_bytes)
+}
+
+fn too_big(mime_type: String, size_bytes: i64) -> FilePreviewPayload {
+    FilePreviewPayload {
+        mode: PreviewMode::TooBig,
+        mime_type,
+        content: String::new(),
+        size_bytes,
+    }
 }
 
 /// Map mime + bytes into a preview payload (size-limit + mode).
@@ -135,7 +134,7 @@ pub(crate) fn preview_payload_from_bytes(
         });
     }
     if bytes.len() > MAX_PREVIEW_BYTES {
-        return Err(io_error("File exceeds preview size limit"));
+        return Ok(too_big(mime.to_string(), size_bytes));
     }
     match kind {
         PreviewKind::Image => Ok(FilePreviewPayload {
@@ -165,7 +164,7 @@ mod tests {
 
     use super::*;
     use crate::server::helpers::{
-        auth_error, forbidden_error, io_error, not_found_error, reject_oversized_preview_metadata,
+        auth_error, exceeds_preview_limit, forbidden_error, io_error, not_found_error,
     };
 
     #[test]
@@ -201,16 +200,16 @@ mod tests {
     fn preview_size_limit_sad() {
         let oversized = vec![0u8; MAX_PREVIEW_BYTES + 1];
         let size = i64::try_from(oversized.len()).expect("size fits i64");
-        let err = preview_payload_from_bytes("image/png", &oversized, size).unwrap_err();
-        assert!(err.to_string().contains("io:"));
-        assert!(err.to_string().contains("exceeds preview size limit"));
+        let p = preview_payload_from_bytes("text/plain", &oversized, size).expect("ok");
+        assert_eq!(p.mode, PreviewMode::TooBig);
+        assert!(p.content.is_empty());
+        assert_eq!(p.size_bytes, size);
     }
 
     #[test]
-    fn preview_metadata_size_guard_rejects_before_fetch() {
+    fn preview_metadata_size_guard_flags_before_fetch() {
         let max = i64::try_from(MAX_PREVIEW_BYTES).expect("max fits i64");
-        let err = reject_oversized_preview_metadata(max + 1).unwrap_err();
-        assert!(err.to_string().contains("exceeds preview size limit"));
-        assert!(reject_oversized_preview_metadata(max).is_ok());
+        assert!(exceeds_preview_limit(max + 1));
+        assert!(!exceeds_preview_limit(max));
     }
 }

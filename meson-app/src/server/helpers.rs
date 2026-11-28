@@ -50,6 +50,7 @@ mod ssr {
             Self::Invalid(detail.into())
         }
 
+        #[allow(dead_code)] // via `io_error` in unit tests
         pub(crate) fn io_msg(msg: impl Into<String>) -> Self {
             Self::Io {
                 msg: msg.into(),
@@ -121,21 +122,18 @@ mod ssr {
     }
 
     /// Stable `io:` prefix for backend failures.
+    #[allow(dead_code)] // asserted in service unit tests
     pub(crate) fn io_error(detail: impl Into<String>) -> MesonAppError {
         MesonAppError::io_msg(detail)
     }
 
     /// Max preview payload size (matches lepton upload cap).
-    pub(crate) const MAX_PREVIEW_BYTES: usize = 5 * 1024 * 1024;
+    pub(crate) const MAX_PREVIEW_BYTES: usize = crate::server::preview::PREVIEW_LIMIT_BYTES;
 
-    /// Reject when metadata size already exceeds the preview cap (before blob fetch).
-    pub(crate) fn reject_oversized_preview_metadata(size_bytes: i64) -> Result<(), MesonAppError> {
+    /// Whether metadata size already exceeds the preview cap (checked before blob fetch).
+    pub(crate) fn exceeds_preview_limit(size_bytes: i64) -> bool {
         let max = i64::try_from(MAX_PREVIEW_BYTES).unwrap_or(i64::MAX);
-        if size_bytes > max {
-            Err(MesonAppError::io_msg("File exceeds preview size limit"))
-        } else {
-            Ok(())
-        }
+        size_bytes > max
     }
 
     pub(crate) fn require_session(ctx: &higgs::Higgs) -> Result<(), MesonAppError> {

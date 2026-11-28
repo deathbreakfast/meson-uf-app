@@ -4,6 +4,7 @@ use lepton_shell::AppBarUserMenu;
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use leptos_router::components::Outlet;
+use leptos_router::hooks::use_location;
 use uf_product::components::{
     Navigation, NavigationBody, NavigationConfig, NavigationLink, NavigationMaterial,
 };
@@ -25,6 +26,16 @@ pub fn MesonLayout() -> impl IntoView {
     let app_name = AppMetadata::name().to_string();
     let selected_value = RwSignal::new(None::<String>);
     let open_categories = RwSignal::new(Vec::<String>::new());
+
+    // A file's page belongs to My Files. The link matches `/meson` exactly (so
+    // other Meson pages don't light it up), so select it here for
+    // `/meson/files/:id`.
+    let location = use_location();
+    Effect::new(move |_| {
+        if location.pathname.get().starts_with("/meson/files/") {
+            selected_value.set(Some("/meson".to_string()));
+        }
+    });
 
     view! {
         <div data-testid="meson-app-root">

@@ -4,8 +4,10 @@ use uf_product_macros::UfPermissionManifest;
 
 /// Meson app permission domain for the platform catalog.
 ///
-/// My Files list, get and preview server fns and the `/meson` routes check
-/// [`MesonPermission::FilesRead`] through the host's `PermissionBackend`. The
+/// My Files list, get, preview, download and delete server fns and the
+/// `/meson` routes check [`MesonPermission::FilesRead`] through the host's
+/// `PermissionBackend`. Delete still has to pass the owner check and the File
+/// table's own `delete:` policy. The
 /// check fails closed, so each embedding host grants it to its members group.
 #[allow(clippy::expl_impl_clone_on_copy)]
 #[derive(UfPermissionManifest)]
@@ -15,8 +17,10 @@ use uf_product_macros::UfPermissionManifest;
     domain_description = "My Files browser across File-trait uploads"
 )]
 pub enum MesonPermission {
-    /// Open My Files and read the signed-in user's own uploads.
-    #[permission(description = "List and preview own Meson uploads (Files read)")]
+    /// Open My Files: list, preview, download and delete the signed-in user's own uploads.
+    #[permission(
+        description = "List, preview, download and delete your own Meson uploads (Files read)"
+    )]
     FilesRead,
     /// Site owners: storage use and estimated cost for everyone, and the cost settings.
     #[permission(

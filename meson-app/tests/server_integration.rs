@@ -98,7 +98,7 @@ async fn meson_app_list_files_for_user_scoped_happy() {
     assert_eq!(rows[0].file_name, "owned.png");
 }
 
-/// Preview rejects an oversized file before ever touching the blob store.
+/// Preview answers "too big" for an oversized file before ever touching the blob store.
 #[tokio::test]
 async fn meson_app_preview_file_for_user_size_guard_sad() {
     const OVER_LIMIT: i64 = 5 * 1024 * 1024 + 1;
@@ -115,11 +115,9 @@ async fn meson_app_preview_file_for_user_size_guard_sad() {
     .await;
     let session = as_user(&system, OWNER_USER_ID);
 
-    let err = preview_file_for_user(&session, owner_rid(), &file_id)
+    let preview = preview_file_for_user(&session, owner_rid(), &file_id)
         .await
-        .expect_err("oversized metadata must reject before blob fetch");
-    assert!(
-        err.to_string().contains("exceeds preview size limit"),
-        "{err}"
-    );
+        .expect("oversized metadata answers before blob fetch");
+    assert_eq!(preview.mode, meson_app::server::PreviewMode::TooBig);
+    assert!(preview.content.is_empty());
 }
